@@ -1,93 +1,111 @@
 import 'package:flutter/material.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/CongratulationsScreen.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/ForgotPasswordWithEmailScreen.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/VerificationCodePhone.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/createNewPassword.dart';
+
+import 'package:marketiapp/core/auth/presentation/view/widget/forgotPassword.dart';
+
+import 'package:marketiapp/core/auth/presentation/view/widget/loginPage.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/onBoarding1.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/onBoarding2.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/onBoarding3.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/signupPage.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/splashScreen.dart';
+import 'package:marketiapp/core/auth/presentation/view/widget/verificationCodeEmail.dart';
+
+import 'package:marketiapp/core/resources/style_manager.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const MarketiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MarketiApp extends StatelessWidget {
+  const MarketiApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      debugShowCheckedModeBanner: false,
+      title: 'Marketi',
+      theme: AppTheme.lightTheme,
+      initialRoute: '/splash',
+      routes: {
+        '/splash': (context) => const SplashScreen(),
+        '/onboarding': (context) => const OnboardingFlow(),
+        '/login': (context) => LoginScreen(),
+        '/sign-up': (context) => SignUpScreen(),
+        '/forgot-password-phone': (context) => ForgotPasswordPhoneScreen(),
+        '/forgot-password-email': (context) => ForgotPasswordEmailScreen(),
+        '/verification-phone': (context) => VerificationCodeScreen(),
+        '/verification-email': (context) => VerificationCodeEmail(),
+        '/create-password':(context)=> CreateNewPasswordScreen(),
+        '/congrates-page':(context)=> CongratulationsScreen(),
+        '/home': (context) =>
+            const Placeholder(), // Replace with your home screen
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-
-
-
-  final String title;
+class OnboardingFlow extends StatefulWidget {
+  const OnboardingFlow({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<OnboardingFlow> createState() => _OnboardingFlowState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _OnboardingFlowState extends State<OnboardingFlow> {
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
-  void _incrementCounter() {
-    setState(() {
-   
-      _counter++;
-    });
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _nextPage() {
+    if (_currentPage < 2) {
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  void _skipToEnd() {
+    Navigator.pushReplacementNamed(context, '/login');
   }
 
   @override
   Widget build(BuildContext context) {
-  
     return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) => setState(() => _currentPage = index),
+        physics: const ClampingScrollPhysics(),
+        children: [
+          OnboardingPage1(onNextPressed: _nextPage, onSkipPressed: _skipToEnd),
+          OnboardingPage2(
+            onNextPressed: _nextPage,
+            onSkipPressed: _skipToEnd,
+            onBackPressed: () => _pageController.previousPage(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
             ),
-          ],
-        ),
+          ),
+          OnboardingPage3(
+            onGetStartedPressed: _skipToEnd,
+            onBackPressed: () => _pageController.previousPage(
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            ),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
