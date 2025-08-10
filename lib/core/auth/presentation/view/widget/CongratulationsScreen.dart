@@ -7,7 +7,7 @@ class CongratulationsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        // Transparent background to match the design
+        
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -18,12 +18,12 @@ class CongratulationsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // Illustration Image
+           
             Expanded(
               flex: 4,
               child: Center(child: Image.asset(AppAssets.congratespass)),
             ),
-            // Text Content
+            
             Expanded(
               flex: 2,
               child: Padding(
@@ -44,14 +44,14 @@ class CongratulationsScreen extends StatelessWidget {
                       style: TextStyle(fontSize: 16, color: Colors.grey[700]),
                     ),
                     SizedBox(height: 30),
-                    // Login Button
+                    
                     SizedBox(
                       width: double.infinity,
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/login');
-                          // Navigate to login or perform desired action
+                          
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

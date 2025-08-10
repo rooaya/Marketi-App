@@ -14,7 +14,6 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
-  // Validation flags
   bool _isPasswordEmpty = false;
   bool _isConfirmPasswordEmpty = false;
 
@@ -57,10 +56,8 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
       return;
     }
 
-    // All validations passed, navigate to success page
     Navigator.pushNamed(context, '/congrates-page');
 
-    // Implement password save logic here if needed
   }
 
   @override
@@ -78,7 +75,6 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
         padding: EdgeInsets.all(24),
         child: Column(
           children: [
-            // Placeholder for the illustration
             Image.asset(AppAssets.createnewpass),
             SizedBox(height: 20),
             Text(
@@ -87,7 +83,6 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 40),
-            // Password TextField
             TextField(
               controller: _passwordController,
               obscureText: true,
@@ -101,7 +96,6 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Confirm Password TextField
             TextField(
               controller: _confirmPasswordController,
               obscureText: true,
@@ -117,7 +111,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               ),
             ),
             SizedBox(height: 40),
-            // Save Password Button
+            
             SizedBox(
               width: double.infinity,
               height: 50,

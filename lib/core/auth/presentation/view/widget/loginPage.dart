@@ -26,7 +26,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _usernameFocusNode.addListener(() {
-      setState(() {}); // To update border color on focus change
+      setState(() {});
     });
     _passwordFocusNode.addListener(() {
       setState(() {});
@@ -70,11 +70,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // If all fields are valid, proceed
     Navigator.pushReplacementNamed(context, '/home');
   }
 
-  // New method to validate before navigating to forgot password
   void _validateBeforeForgotPassword() {
     final username = _usernameController.text.trim();
 
@@ -85,8 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // If username is not empty, proceed to forgot password screen
-    // You might want to pass the username to the next screen
     Navigator.pushNamed(context, '/forgot-password-phone', arguments: username);
   }
 
@@ -102,7 +98,6 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Row: Skip Button styled with border
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -158,7 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSize.paddingLarge),
-              // Password input
               TextField(
                 controller: _passwordController,
                 focusNode: _passwordFocusNode,
@@ -184,7 +178,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: AppSize.paddingMedium),
-              // Remember Me & Forgot Password
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -203,8 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   TextButton(
-                    onPressed:
-                        _validateBeforeForgotPassword, // Updated to use new validation method
+                    onPressed: _validateBeforeForgotPassword,
                     child: Text(
                       'Forgot Password?',
                       style: AppTextStyles.bodyMedium.copyWith(
@@ -236,7 +228,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              // Divider with "Or Continue With"
               Row(
                 children: [
                   Expanded(child: Divider()),
@@ -255,7 +246,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              // Social login buttons inside auth_bg container
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,

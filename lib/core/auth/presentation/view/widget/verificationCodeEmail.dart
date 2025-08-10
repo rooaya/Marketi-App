@@ -8,25 +8,22 @@ class VerificationCodeEmail extends StatefulWidget {
 }
 
 class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
-  // Controllers for each input box
   final List<TextEditingController> _controllers = List.generate(
     4,
     (_) => TextEditingController(),
   );
 
-  // Timer duration
   int secondsRemaining = 46;
-  Ticker? _ticker; // Make nullable
+  Ticker? _ticker; 
 
   @override
   void initState() {
     super.initState();
-    startTimer(); // Start timer on init
+    startTimer(); 
   }
 
-  // Function to start or restart the timer
   void startTimer() {
-    _ticker?.dispose(); // Dispose previous ticker if any
+    _ticker?.dispose(); 
     _ticker = Ticker((elapsed) {
       final newSeconds = 46 - elapsed.inSeconds;
       if (newSeconds > 0) {
@@ -77,19 +74,16 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
       }
     }
 
-    // Optional: You can add further validation for the code here
 
     // Proceed to next screen
     Navigator.pushNamed(context, '/create-password');
   }
 
-  // Function to handle resend code
   void _resendCode() {
     setState(() {
       secondsRemaining = 46;
     });
     startTimer();
-    // Add your resend code logic here, e.g., API call
   }
 
   @override
@@ -106,11 +100,10 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
-            // Illustration Image
             Container(
               height: 200,
               child: Image.asset(
-                AppAssets.forgotpassEmail, // replace with your asset path
+                AppAssets.forgotpassEmail,
                 fit: BoxFit.contain,
               ),
             ),
@@ -121,7 +114,6 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             SizedBox(height: 30),
-            // Input fields
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: List.generate(4, (index) {
@@ -151,7 +143,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
               }),
             ),
             SizedBox(height: 30),
-            // Verify Code Button
+           
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -170,7 +162,6 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
               ),
             ),
             SizedBox(height: 20),
-            // Timer and Resend
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

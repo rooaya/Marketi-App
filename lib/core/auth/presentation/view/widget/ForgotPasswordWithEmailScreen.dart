@@ -53,7 +53,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
       return;
     }
 
-    // Proceed if validation passes
     Navigator.pushNamed(context, '/verification-email');
   }
 
@@ -67,7 +66,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Back arrow at top left
             Align(
               alignment: Alignment.topLeft,
               child: IconButton(
@@ -76,7 +74,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Illustration Image
             Center(
               child: Image.asset(
                 AppAssets.forgotpassEmail,
@@ -85,7 +82,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Instruction text
             Text(
               'Please enter your email address to receive a verification code',
               style: TextStyle(
@@ -95,7 +91,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
-            // Email input field with validation
             TextField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
@@ -115,7 +110,6 @@ class _ForgotPasswordEmailScreenState extends State<ForgotPasswordEmailScreen> {
               ),
             ),
             SizedBox(height: 30),
-            // Send Code button
             SizedBox(
               width: double.infinity,
               height: 50,

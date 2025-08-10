@@ -13,7 +13,7 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isPhoneEmpty = false;
   String _selectedCountryCode = '+20';
-  bool _isNumberTyped = false; // Track if user typed a number
+  bool _isNumberTyped = false; 
   OverlayEntry? _overlayEntry;
   final LayerLink _layerLink = LayerLink();
   final FocusNode _focusNode = FocusNode();
@@ -35,7 +35,6 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
       }
     });
     _phoneController.addListener(() {
-      // Update _isNumberTyped based on whether there's text
       setState(() {
         _isNumberTyped = _phoneController.text.isNotEmpty;
       });
@@ -46,11 +45,9 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
   void dispose() {
     _phoneController.dispose();
     _focusNode.dispose();
-    _removeOverlay(); // Remove overlay if any
-    super.dispose();
+    _removeOverlay(); 
   }
 
-  // Define _removeOverlay() to remove overlay if exists
   void _removeOverlay() {
     _overlayEntry?.remove();
     _overlayEntry = null;

@@ -26,11 +26,11 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
   void startTimer() {
     _start = 46;
     _timer?.cancel();
-    setState(() {}); // to update UI immediately
+    setState(() {}); 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (_start == 0) {
         timer.cancel();
-        setState(() {}); // update UI when timer ends
+        setState(() {}); 
       } else {
         setState(() {
           _start--;
@@ -118,7 +118,6 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
-            // Illustration Image
             Expanded(
               child: Center(
                 child: Image.asset(AppAssets.verificationcode, height: 200),
@@ -133,7 +132,6 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Digit input boxes
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -144,7 +142,7 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               ],
             ),
             SizedBox(height: 30),
-            // Verify Button
+            
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -163,7 +161,6 @@ class _VerificationCodeScreenState extends State<VerificationCodeScreen> {
               ),
             ),
             SizedBox(height: 20),
-            // Timer and Resend
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -51,7 +51,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   void _signUp() {
     if (_formKey.currentState?.validate() ?? false) {
-      // Implement your sign-up logic here
       print('Full Name: ${fullNameController.text}');
       print('Username: ${usernameController.text}');
       print('Phone: ${phoneController.text}');
@@ -59,7 +58,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       print('Password: ${passwordController.text}');
       print('Confirm Password: ${confirmPasswordController.text}');
 
-      // Navigate to home or another screen
       Navigator.pushReplacementNamed(context, '/home');
     }
   }
@@ -74,7 +72,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context); // Navigate back when pressed
+            Navigator.pop(context);
           },
         ),
       ),
@@ -150,7 +148,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Password
               Text('Password', style: TextStyle(color: Colors.blue)),
               const SizedBox(height: 8),
               TextFormField(
@@ -179,7 +176,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              // Confirm Password
               Text('Confirm Password', style: TextStyle(color: Colors.blue)),
               const SizedBox(height: 8),
               TextFormField(
@@ -213,7 +209,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-              // Sign Up Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -232,7 +227,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              // Footer Text
+
               Center(
                 child: Text(
                   '© Continue with',
