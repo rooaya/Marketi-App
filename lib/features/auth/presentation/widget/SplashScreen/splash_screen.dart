@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:marketiapp/core/resources/app_size.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/core/resources/style_manager.dart';
 import 'package:marketiapp/core/theme/app_colors.dart';
-import 'package:marketiapp/core/resources/input_styles.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
