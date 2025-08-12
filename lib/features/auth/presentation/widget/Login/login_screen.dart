@@ -7,37 +7,36 @@ import 'package:marketiapp/core/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final VoidCallback onLoginSuccess;
+
+  const LoginScreen({super.key, required this.onLoginSuccess});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  final FocusNode _usernameFocusNode = FocusNode();
+  final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
 
   bool _rememberMe = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _usernameFocusNode.addListener(() {
-      setState(() {});
-    });
-    _passwordFocusNode.addListener(() {
-      setState(() {});
-    });
+    _emailFocusNode.addListener(() => setState(() {}));
+    _passwordFocusNode.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
-    _usernameFocusNode.dispose();
+    _emailFocusNode.dispose();
     _passwordFocusNode.dispose();
-    _usernameController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -55,35 +54,37 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _validateAndLogin() {
-    final username = _usernameController.text.trim();
+  Future<void> _login() async {
+    final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    if (username.isEmpty && password.isEmpty) {
-      _showErrorMessage('Please enter your username and password');
-      return;
-    } else if (username.isEmpty) {
-      _showErrorMessage('Please enter your username or email');
-      return;
-    } else if (password.isEmpty) {
-      _showErrorMessage('Please enter your password');
+    if (email.isEmpty || password.isEmpty) {
+      _showErrorMessage('Please enter both email and password');
       return;
     }
 
-    Navigator.pushReplacementNamed(context, '/home');
+    setState(() => _isLoading = true);
+
+    // Check for specific credentials
+    if (email == 'rooaya52@gmail.com' && password == 'Ro@ya_12345') {
+      await Future.delayed(Duration(seconds: 1)); // Simulate network delay
+      widget.onLoginSuccess();
+    } else {
+      _showErrorMessage('Invalid email or password');
+    }
+
+    setState(() => _isLoading = false);
   }
 
   void _validateBeforeForgotPassword() {
-    final username = _usernameController.text.trim();
+    final email = _emailController.text.trim();
 
-    if (username.isEmpty) {
-      _showErrorMessage(
-        'Please enter your username or email to recover password',
-      );
+    if (email.isEmpty) {
+      _showErrorMessage('Please enter your email to recover password');
       return;
     }
 
-    Navigator.pushNamed(context, '/forgot-password-phone', arguments: username);
+    Navigator.pushNamed(context, '/forgot-password-email', arguments: email);
   }
 
   @override
@@ -102,9 +103,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -125,19 +124,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: 40),
-              // Centered Larger Logo
               Center(child: Image.asset(AppAssets.logo, height: 200)),
               const SizedBox(height: 20),
-              // Username/Email input
               TextField(
-                controller: _usernameController,
-                focusNode: _usernameFocusNode,
+                controller: _emailController,
+                focusNode: _emailFocusNode,
                 decoration: InputDecoration(
-                  labelText: 'Username or Email',
+                  labelText: 'Email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: BorderSide(
-                      color: _usernameFocusNode.hasFocus
+                      color: _emailFocusNode.hasFocus
                           ? MarketiColors.primaryBlue
                           : MarketiColors.gray300,
                     ),
@@ -207,24 +204,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
               ),
               const SizedBox(height: AppSize.paddingExtraLarge),
-              // Log In Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _validateAndLogin,
+                  onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: MarketiColors.primaryBlue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
-                  child: Text(
-                    'Log In',
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: MarketiColors.white,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? CircularProgressIndicator(color: MarketiColors.white)
+                      : Text(
+                          'Log In',
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: MarketiColors.white,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 30),

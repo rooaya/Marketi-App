@@ -33,15 +33,4 @@ class AuthRepo {
     }
   }
 
-  // Send Verification Email
-  Future<SendVerificationEmailResponse> sendVerificationEmail(
-      SendVerificationEmailRequest request) async {
-    try {
-      final response = await apiConsumer.sendVerificationEmail(request);
-      return response;
-    } catch (e) {
-      // Handle exceptions or rethrow
-      rethrow;
-    }
   }
-}

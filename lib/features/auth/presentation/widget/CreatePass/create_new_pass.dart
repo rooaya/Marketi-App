@@ -1,8 +1,20 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/end_points.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
+import 'package:marketiapp/models/reset_password_request.dart';
+import 'package:marketiapp/models/reset_password_response.dart';
 
 class CreateNewPasswordScreen extends StatefulWidget {
-  const CreateNewPasswordScreen({super.key});
+  final String email;
+  final String resetCode;
+
+  const CreateNewPasswordScreen({
+    super.key,
+    required this.email,
+    required this.resetCode,
+  });
 
   @override
   _CreateNewPasswordScreenState createState() =>
@@ -16,6 +28,9 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
 
   bool _isPasswordEmpty = false;
   bool _isConfirmPasswordEmpty = false;
+  bool _isLoading = false;
+
+  final ApiConsumer _apiConsumer = ApiConsumer(dio: Dio());
 
   @override
   void dispose() {
@@ -37,7 +52,20 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     );
   }
 
-  void _validateAndSave() {
+  void _showSuccessMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Future<void> _resetPassword() async {
     final newPass = _passwordController.text.trim();
     final confirmPass = _confirmPasswordController.text.trim();
 
@@ -56,8 +84,38 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
       return;
     }
 
-    Navigator.pushNamed(context, '/congrates-page');
+    setState(() {
+      _isLoading = true;
+    });
 
+    try {
+      final response = await _apiConsumer.dio.post(
+        '${EndPoints.baseUrl}${EndPoints.resetPass}',
+        data: {
+          'email': widget.email,
+          'newPassword': newPass,
+          'resetCode': widget.resetCode,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final resetResponse = ResetPasswordResponse.fromJson(response.data);
+        if (resetResponse.success) {
+          _showSuccessMessage('Password reset successfully!');
+          Navigator.pushNamed(context, '/congrates-page');
+        } else {
+          _showErrorMessage(resetResponse.message ?? 'Password reset failed');
+        }
+      } else {
+        _showErrorMessage('Password reset failed: ${response.data}');
+      }
+    } catch (e) {
+      _showErrorMessage('Error resetting password: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -111,22 +169,23 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
               ),
             ),
             SizedBox(height: 40),
-            
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _validateAndSave,
+                onPressed: _isLoading ? null : _resetPassword,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: Text(
-                  'Save Password',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Save Password',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
               ),
             ),
           ],
