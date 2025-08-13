@@ -1,15 +1,20 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/api_interceptors.dart';
 import 'package:marketiapp/core/resources/app_size.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/core/resources/style_manager.dart';
 import 'package:marketiapp/core/theme/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:marketiapp/models/signin_request.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
 
-  const LoginScreen({super.key, required this.onLoginSuccess});
+  const LoginScreen({super.key, required this.onLoginSuccess, String? initialEmail});
 
   @override
   _LoginScreenState createState() => _LoginScreenState();
@@ -18,18 +23,21 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   final FocusNode _emailFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
-
   bool _rememberMe = false;
   bool _isLoading = false;
+  late ApiConsumer apiConsumer;
 
   @override
   void initState() {
     super.initState();
     _emailFocusNode.addListener(() => setState(() {}));
     _passwordFocusNode.addListener(() => setState(() {}));
+    
+    final dio = Dio();
+    dio.interceptors.add(ApiInterceptors());
+    apiConsumer = ApiConsumer(dio: dio);
   }
 
   @override
@@ -44,46 +52,55 @@ class _LoginScreenState extends State<LoginScreen> {
   void _showErrorMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
 
-  Future<void> _login() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
+Future<void> _login() async {
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
 
-    if (email.isEmpty || password.isEmpty) {
-      _showErrorMessage('Please enter both email and password');
-      return;
+  if (email.isEmpty || password.isEmpty) {
+    _showErrorMessage('Please enter both email and password');
+    return;
+  }
+
+  setState(() => _isLoading = true);
+
+  try {
+    final request = SigninRequest(email: email, password: password);
+    final response = await apiConsumer.signIn(request);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', response.token);
+    await prefs.setString('email', response.user.email);
+    await prefs.setBool('isLoggedIn', true);
+    
+    if (_rememberMe) {
+      await prefs.setString('savedEmail', email);
+      await prefs.setString('savedPassword', password);
     }
-
-    setState(() => _isLoading = true);
-
-    // Check for specific credentials
-    if (email == 'rooaya52@gmail.com' && password == 'Ro@ya_12345') {
-      await Future.delayed(Duration(seconds: 1)); // Simulate network delay
-      widget.onLoginSuccess();
-    } else {
-      _showErrorMessage('Invalid email or password');
-    }
-
+    
+    widget.onLoginSuccess();
+  } catch (e) {
+    _showErrorMessage('Login failed: Invalid credentials');
+  } finally {
     setState(() => _isLoading = false);
   }
+}
 
   void _validateBeforeForgotPassword() {
     final email = _emailController.text.trim();
-
     if (email.isEmpty) {
       _showErrorMessage('Please enter your email to recover password');
       return;
     }
-
     Navigator.pushNamed(context, '/forgot-password-email', arguments: email);
   }
 
@@ -264,12 +281,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       icon: Icon(FontAwesomeIcons.facebook, color: Colors.blue),
                       onPressed: () {},
                     ),
-                    SizedBox(width: 11),
+                    const SizedBox(width: 11),
                     IconButton(
                       onPressed: () {},
                       icon: Icon(FontAwesomeIcons.google, color: Colors.red),
                     ),
-                    SizedBox(width: 11),
+                    const SizedBox(width: 11),
                     IconButton(
                       onPressed: () {},
                       icon: Icon(FontAwesomeIcons.twitter),
@@ -278,7 +295,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              // Register prompt
               Center(
                 child: RichText(
                   text: TextSpan(

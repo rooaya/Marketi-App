@@ -1,8 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/api_interceptors.dart';
+import 'package:marketiapp/core/api/end_points.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
+import 'package:marketiapp/models/reset_password_request.dart';
 
 class VerificationCodeEmail extends StatefulWidget {
+  final String email;
+
+  const VerificationCodeEmail({Key? key, required this.email}) : super(key: key);
+
   @override
   _VerificationCodeEmailState createState() => _VerificationCodeEmailState();
 }
@@ -14,16 +23,21 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
   );
 
   int secondsRemaining = 46;
-  Ticker? _ticker; 
+  Ticker? _ticker;
+  bool _isLoading = false;
+  late ApiConsumer apiConsumer;
 
   @override
   void initState() {
     super.initState();
-    startTimer(); 
+    final dio = Dio();
+    dio.interceptors.add(ApiInterceptors());
+    apiConsumer = ApiConsumer(dio: dio);
+    startTimer();
   }
 
   void startTimer() {
-    _ticker?.dispose(); 
+    _ticker?.dispose();
     _ticker = Ticker((elapsed) {
       final newSeconds = 46 - elapsed.inSeconds;
       if (newSeconds > 0) {
@@ -52,10 +66,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
   void _showErrorMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          message,
-          style: TextStyle(color: Colors.white),
-        ),
+        content: Text(message, style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
         margin: EdgeInsets.all(16),
@@ -65,7 +76,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
     );
   }
 
-  void _onVerify() {
+  Future<void> _onVerify() async {
     // Check if all fields are filled
     for (int i = 0; i < _controllers.length; i++) {
       if (_controllers[i].text.isEmpty) {
@@ -74,16 +85,62 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
       }
     }
 
+    final verificationCode = _controllers.map((c) => c.text).join();
 
-    // Proceed to next screen
-    Navigator.pushNamed(context, '/create-password');
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await apiConsumer.dio.post(
+        '${EndPoints.baseUrl}${EndPoints.activeResetPass}',
+        data: {
+          'email': widget.email,
+          'resetCode': verificationCode,
+        },
+      );
+
+      if (response.statusCode == 200) {
+  Navigator.pushNamed(
+    context,
+    '/create-password',
+    arguments: {
+      'email': widget.email,
+      'resetCode': verificationCode,
+    },
+  );
+
+      } else {
+        _showErrorMessage('Invalid verification code');
+      }
+    } catch (e) {
+      _showErrorMessage('Verification failed: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  void _resendCode() {
+  Future<void> _resendCode() async {
     setState(() {
       secondsRemaining = 46;
+      _isLoading = true;
     });
     startTimer();
+
+    try {
+      await apiConsumer.dio.post(
+        '${EndPoints.baseUrl}${EndPoints.resetpass}',
+        data: {'email': widget.email},
+      );
+    } catch (e) {
+      _showErrorMessage('Failed to resend code: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -109,7 +166,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
             ),
             SizedBox(height: 20),
             Text(
-              'Please enter the 4 digit code sent to you: you@gmail.com',
+              'Please enter the 4 digit code sent to you: ${widget.email}',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
@@ -143,22 +200,23 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
               }),
             ),
             SizedBox(height: 30),
-           
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: _onVerify,
+                onPressed: _isLoading ? null : _onVerify,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
                   ),
                 ),
-                child: Text(
-                  'Verify Code',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Verify Code',
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
               ),
             ),
             SizedBox(height: 20),
@@ -168,11 +226,13 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
                 Text('00:${secondsRemaining.toString().padLeft(2, '0')}'),
                 SizedBox(width: 20),
                 GestureDetector(
-                  onTap: secondsRemaining == 0 ? _resendCode : null,
+                  onTap: secondsRemaining == 0 && !_isLoading ? _resendCode : null,
                   child: Text(
                     'Resend Code',
                     style: TextStyle(
-                      color: secondsRemaining == 0 ? Colors.blue : Colors.grey,
+                      color: secondsRemaining == 0 && !_isLoading 
+                          ? Colors.blue 
+                          : Colors.grey,
                       decoration: TextDecoration.underline,
                     ),
                   ),

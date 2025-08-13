@@ -1,4 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/api_interceptors.dart';
+import 'package:marketiapp/core/api/end_points.dart';
+import 'package:marketiapp/models/signup_request.dart';
+import 'package:marketiapp/models/signup_response.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -18,8 +24,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+  late ApiConsumer _apiConsumer;
 
   final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    final dio = Dio();
+    dio.interceptors.add(ApiInterceptors());
+    _apiConsumer = ApiConsumer(dio: dio);
+  }
 
   InputDecoration _buildInputDecoration({
     required String label,
@@ -49,16 +65,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  void _signUp() {
-    if (_formKey.currentState?.validate() ?? false) {
-      print('Full Name: ${fullNameController.text}');
-      print('Username: ${usernameController.text}');
-      print('Phone: ${phoneController.text}');
-      print('Email: ${emailController.text}');
-      print('Password: ${passwordController.text}');
-      print('Confirm Password: ${confirmPasswordController.text}');
+  Future<void> _signUp() async {
+    if (!(_formKey.currentState?.validate() ?? false)) return;
 
-      Navigator.pushReplacementNamed(context, '/home');
+    if (passwordController.text != confirmPasswordController.text) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Passwords do not match')));
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final request = SignupRequest(
+        name: fullNameController.text.trim(),
+        phone: phoneController.text.trim(),
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+        confirmPassword: confirmPasswordController.text.trim(),
+      );
+
+      final response = await _apiConsumer.signUp(request);
+
+      // Show success message
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response.message)));
+
+      // Navigate to login screen with pre-filled email
+      Navigator.pushReplacementNamed(
+        context,
+        '/login',
+        arguments: {'email': emailController.text.trim()},
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Signup failed: ${e.toString()}')));
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -70,10 +120,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -100,21 +148,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   icon: Icons.person,
                 ),
               ),
-              const SizedBox(height: 16),
-              // Username
-              Text('Username', style: TextStyle(color: Colors.blue)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: usernameController,
-                validator: (value) => (value == null || value.isEmpty)
-                    ? 'Please enter a username'
-                    : null,
-                decoration: _buildInputDecoration(
-                  label: 'Username',
-                  hint: 'Name name',
-                  icon: Icons.person_outline,
-                ),
-              ),
+
               const SizedBox(height: 16),
               // Phone
               Text('Phone Number', style: TextStyle(color: Colors.blue)),
@@ -155,6 +189,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: !_isPasswordVisible,
                 validator: (value) => (value == null || value.isEmpty)
                     ? 'Please enter a password'
+                    : value.length < 6
+                    ? 'Password must be at least 6 characters'
                     : null,
                 decoration: _buildInputDecoration(
                   label: 'Password',
@@ -213,21 +249,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: _signUp,
+                  onPressed: _isLoading ? null : _signUp,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          'Sign Up',
+                          style: TextStyle(color: Colors.white, fontSize: 16),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
-
               Center(
                 child: Text(
                   '© Continue with',

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -9,7 +8,7 @@ class SplashScreen extends StatefulWidget {
   _SplashScreenState createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends State<SplashScreen> 
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
@@ -23,24 +22,11 @@ class _SplashScreenState extends State<SplashScreen>
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
     _controller.forward();
-
-    _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
-
-    // Delay for splash screen display
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    if (isLoggedIn) {
-      Navigator.pushReplacementNamed(context, '/home_screen');
-    } else {
-      Navigator.pushReplacementNamed(context, '/login');
-    }
+    
+    // After animation completes, go to onboarding
+    Future.delayed(const Duration(seconds: 2), () {
+      Navigator.pushReplacementNamed(context, '/onboarding1');
+    });
   }
 
   @override
@@ -59,8 +45,7 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Replace with your logo
-            Image.asset(AppAssets.logo),
+              Image.asset(AppAssets.logo),
               const SizedBox(height: 20),
               const CircularProgressIndicator(),
             ],

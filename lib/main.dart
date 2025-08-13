@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/features/auth/presentation/widget/Congratulations/congratulation_screen.dart';
 import 'package:marketiapp/features/auth/presentation/widget/CreatePass/create_new_pass.dart';
@@ -15,12 +13,8 @@ import 'package:marketiapp/features/auth/presentation/widget/SignUp/sign_up_scre
 import 'package:marketiapp/features/auth/presentation/widget/SplashScreen/splash_screen.dart';
 import 'package:marketiapp/features/auth/presentation/widget/VerificationCode/verify_code_email.dart';
 import 'package:marketiapp/features/auth/presentation/widget/VerificationCode/verify_code_phone.dart';
-import 'package:marketiapp/models/signin_request.dart';
-import 'package:marketiapp/utils/app_setup.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+void main() {
   runApp(const MarketiApp());
 }
 
@@ -35,51 +29,46 @@ class MarketiApp extends StatelessWidget {
       routes: {
         '/splash': (context) => const SplashScreen(),
         '/onboarding1': (context) => OnboardingPage1(
-          onNextPressed: () {
-            Navigator.pushReplacementNamed(context, '/onboarding2');
-          },
-          onSkipPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
-          },
+          onNextPressed: () =>
+              Navigator.pushReplacementNamed(context, '/onboarding2'),
+          onSkipPressed: () =>
+              Navigator.pushReplacementNamed(context, '/login'),
         ),
         '/onboarding2': (context) => OnboardingPage2(
-          onNextPressed: () {
-            Navigator.pushReplacementNamed(context, '/onboarding3');
-          },
-          onBackPressed: () {
-            Navigator.pop(context);
-          },
-          onSkipPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
-          },
+          onNextPressed: () =>
+              Navigator.pushReplacementNamed(context, '/onboarding3'),
+          onBackPressed: () => Navigator.pop(context),
+          onSkipPressed: () =>
+              Navigator.pushReplacementNamed(context, '/login'),
         ),
         '/onboarding3': (context) => OnboardingPage3(
-          onGetStartedPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
-          },
-          onBackPressed: () {
-            Navigator.pop(context);
-          },
+          onGetStartedPressed: () =>
+              Navigator.pushReplacementNamed(context, '/login'),
+          onBackPressed: () => Navigator.pop(context),
         ),
-        '/login': (context) => LoginScreen(
-          onLoginSuccess: () async {
-            // Save login state
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.setBool('isLoggedIn', true);
-            Navigator.pushReplacementNamed(context, '/home_screen');
-          },
-        ),
-        '/sign-up': (context) => SignUpScreen(),
+        '/sign-up': (context) => const SignUpScreen(),
+  '/login': (context) {
+    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    return LoginScreen(
+      onLoginSuccess: () => Navigator.pushReplacementNamed(context, '/home_screen'),
+      initialEmail: args?['email']?.toString(),
+    );
+  },
         '/forgot-password-phone': (context) => ForgotPasswordPhoneScreen(),
+        // In your routes:
         '/forgot-password-email': (context) => ForgotPasswordEmailScreen(),
-        '/verification-phone': (context) => VerificationCodeScreen(),
-        '/verification-email': (context) => VerificationCodeEmail(),
-        '/create-password': (context) => CreateNewPasswordScreen(
-          email: "rooaya52@gmail.com",
-          resetCode: '12345',
-        ),
+        '/verification-email': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    return VerificationCodeEmail(email: args['email'] as String);
+  },
+  '/create-password': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    return CreateNewPasswordScreen(
+      email: args['email'] as String,
+      resetCode: args['resetCode'] as String,
+    );
+  },
         '/congrates-page': (context) => CongratulationsScreen(),
-        '/home': (context) => const Placeholder(),
         '/home_screen': (context) => ProductHomePage(),
       },
     );

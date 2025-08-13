@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/api_interceptors.dart';
 import 'package:marketiapp/core/api/end_points.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/models/reset_password_request.dart';
 import 'package:marketiapp/models/reset_password_response.dart';
 
 class CreateNewPasswordScreen extends StatefulWidget {
@@ -17,26 +17,24 @@ class CreateNewPasswordScreen extends StatefulWidget {
   });
 
   @override
-  _CreateNewPasswordScreenState createState() =>
-      _CreateNewPasswordScreenState();
+  _CreateNewPasswordScreenState createState() => _CreateNewPasswordScreenState();
 }
 
 class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
   bool _isPasswordEmpty = false;
   bool _isConfirmPasswordEmpty = false;
   bool _isLoading = false;
-
-  final ApiConsumer _apiConsumer = ApiConsumer(dio: Dio());
+  late ApiConsumer apiConsumer;
 
   @override
-  void dispose() {
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
+  void initState() {
+    super.initState();
+    final dio = Dio();
+    dio.interceptors.add(ApiInterceptors());
+    apiConsumer = ApiConsumer(dio: dio);
   }
 
   void _showErrorMessage(String message) {
@@ -89,7 +87,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     });
 
     try {
-      final response = await _apiConsumer.dio.post(
+      final response = await apiConsumer.dio.post(
         '${EndPoints.baseUrl}${EndPoints.resetPass}',
         data: {
           'email': widget.email,
@@ -163,9 +161,7 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                errorText: _isConfirmPasswordEmpty
-                    ? 'This field is required'
-                    : null,
+                errorText: _isConfirmPasswordEmpty ? 'This field is required' : null,
               ),
             ),
             SizedBox(height: 40),
