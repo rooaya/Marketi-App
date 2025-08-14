@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:marketiapp/core/resources/app_size.dart';
+import 'package:marketiapp/core/theme/app_size.dart';
 import 'package:marketiapp/core/theme/app_colors.dart';
 
 class InputStyles {

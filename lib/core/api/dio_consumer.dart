@@ -1,76 +1,117 @@
 import 'package:dio/dio.dart';
-import 'package:marketiapp/core/api/end_points.dart';
+import 'package:marketiapp/core/api/api_interceptors.dart';
+import 'api_consumer.dart';
+import 'end_points.dart';
 
-class DioConsumer {
+class DioConsumer implements ApiConsumer {
   final Dio dio;
+  final Future<String?> Function() getToken;
 
-  DioConsumer({required this.dio}) {
-    dio.options.baseUrl = EndPoints.baseUrl;
-    dio.interceptors.add(LogInterceptor(responseBody: true, requestBody: true));
-    // You can add your ApiInterceptors here if needed
-    // dio.interceptors.add(ApiInterceptors(token: 'your_token'));
+  DioConsumer({
+    required this.dio,
+    required this.getToken,
+  }) {
+    dio.options
+      ..baseUrl = EndPoints.baseUrl
+      ..responseType = ResponseType.json
+      ..receiveDataWhenStatusError = true;
+
+    dio.interceptors.addAll([
+      ApiInterceptor(getToken: getToken),
+      LogInterceptor(
+        request: true,
+        requestHeader: true,
+        requestBody: true,
+        responseHeader: true,
+        responseBody: true,
+        error: true,
+      ),
+    ]);
   }
 
-  Future<Response> post(String endpoint, {Map<String, dynamic>? data, String? token}) async {
+  @override
+  Future<dynamic> get(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+  }) async {
     try {
-      final options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await dio.get(
+        path,
+        data: data,
+        queryParameters: queryParameters,
       );
-      final response = await dio.post(endpoint, data: data, options: options);
-      return response;
-    } catch (e) {
-      // Handle errors more gracefully if needed
-      // For now, rethrowing
-      rethrow;
+      return response.data;
+    } on DioException catch (e) {
+      _handleDioError(e);
     }
   }
 
-  Future<Response> get(String endpoint, {String? token}) async {
+  @override
+  Future<dynamic> post(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    bool isFromData = false,
+  }) async {
     try {
-      final options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await dio.post(
+        path,
+        data: isFromData ? _formDataConverter(data) : data,
+        queryParameters: queryParameters,
       );
-      final response = await dio.get(endpoint, options: options);
-      return response;
-    } catch (e) {
-      rethrow;
+      return response.data;
+    } on DioException catch (e) {
+      _handleDioError(e);
     }
   }
 
-  // Optional: add update, delete, put methods
-  Future<Response> put(String endpoint, {Map<String, dynamic>? data, String? token}) async {
+  @override
+  Future<dynamic> patch(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    bool isFromData = false,
+  }) async {
     try {
-      final options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await dio.patch(
+        path,
+        data: isFromData ? _formDataConverter(data) : data,
+        queryParameters: queryParameters,
       );
-      final response = await dio.put(endpoint, data: data, options: options);
-      return response;
-    } catch (e) {
-      rethrow;
+      return response.data;
+    } on DioException catch (e) {
+      _handleDioError(e);
     }
   }
 
-  Future<Response> delete(String endpoint, {String? token}) async {
+  @override
+  Future<dynamic> delete(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    bool isFromData = false,
+  }) async {
     try {
-      final options = Options(
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
+      final response = await dio.delete(
+        path,
+        data: isFromData ? _formDataConverter(data) : data,
+        queryParameters: queryParameters,
       );
-      final response = await dio.delete(endpoint, options: options);
-      return response;
-    } catch (e) {
-      rethrow;
+      return response.data;
+    } on DioException catch (e) {
+      _handleDioError(e);
     }
+  }
+
+  FormData _formDataConverter(Object? data) {
+    if (data == null) return FormData();
+    if (data is Map<String, dynamic>) return FormData.fromMap(data);
+    throw ArgumentError('Data must be a Map for form data conversion');
+  }
+
+  void _handleDioError(DioException error) {
+    // Add your custom error handling logic here
+    throw error;
   }
 }

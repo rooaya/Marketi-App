@@ -90,5 +90,7 @@ class MarketiColors {
     colors: [primaryBlueLight, primaryBlue],
   );
 
+  static var primary;
+
 
 }

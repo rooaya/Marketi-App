@@ -34,6 +34,16 @@ class AppAssets {
   static const String food = 'assets/icons/categories/food.png';
   static const String phones = 'assets/icons/categories/phones.png';
   static const String Games = 'assets/images/games.png';
+  static const String airbods = 'assets/images/Airbods.png';
+  static const String TV = 'assets/images/TV.png';
+  static const String watch = 'assets/images/watch.png';
+  static const String laptop = 'assets/images/laptop.png';
+  static const String headphone = 'assets/images/headphones.png';
+  static const String ankle = 'assets/images/ankle.png';
+  static const String camera = 'assets/images/camera.png';
+  static const String lose = ' assets/images/lose.png';
+  static const String cornflex = 'assets/images/cornflex.png';
+  static const String losee = 'assets/images/losee.png';
 
   //brand images
   static const String TownTeam = 'assets/images/TownTeamBrand.png';
@@ -167,6 +177,26 @@ class AppAssets {
         return lacost;
       case 'ToshipaIcon':
         return toshipa;
+      case 'airbods':
+        return airbods;
+      case 'TV':
+        return TV;
+      case 'watch':
+        return watch;
+      case 'laptop':
+        return laptop;
+      case "headphone":
+        return headphone;
+      case 'camera':
+        return camera;
+      case 'ankle':
+        return ankle;
+      case 'lose':
+        return lose;
+      case 'cornflex':
+        return cornflex;
+      case 'losee':
+        return losee;
 
       default:
         return placeholder;

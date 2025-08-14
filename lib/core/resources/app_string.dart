@@ -1,32 +1,17 @@
 class MarketiText {
-  // App Text Strings
-  static const String fontApp = "poppins";
+
   static const String appName = "Marketi";
   static const String appTagline = "Shop Smarter, Live Better";
 
-  // Authentication
-  static const String login = "Login";
-  static const String signup = "Sign Up";
-  static const String email = "Email";
-  static const String password = "Password";
-  static const String forgotPassword = "Forgot Password?";
-  static const String orLoginWith = "Or login with";
-  static const String dontHaveAccount = "Don't have an account? ";
-  static const String alreadyHaveAccount = "Already have an account? ";
-
+  
   // Navigation
   static const String home = "Home";
   static const String search = "Search";
-  static const String cart = "Cart";
-  static const String orders = "Orders";
-  static const String profile = "Profile";
+
 
   // Home Screen
   static const String categories = "Categories";
-  static const String featuredProducts = "Featured Products";
-  static const String dealsOfTheDay = "Deals of the Day";
-  static const String seeAll = "See All";
-  static const String popularBrands = "Popular Brands";
+
 
   // Product
   static const String addToCart = "Add to Cart";

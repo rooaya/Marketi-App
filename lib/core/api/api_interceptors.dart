@@ -1,41 +1,30 @@
 import 'package:dio/dio.dart';
 
-class ApiInterceptors extends Interceptor {
-  final String? token;
+class ApiInterceptor extends Interceptor {
+  final Future<String?> Function() getToken;
 
-  ApiInterceptors({this.token});
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
-    }
-    // Logging request
-    print('Request [${options.method}] => URL: ${options.uri}');
-    super.onRequest(options, handler);
-  }
+  ApiInterceptor({required this.getToken});
 
   @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    // Logging response
-    print('Response [${response.statusCode}] => Data: ${response.data}');
-    super.onResponse(response, handler);
-  }
-
-  @override
-  void onError(DioError err, ErrorInterceptorHandler handler) {
-    // Handle specific error status codes
-    if (err.response != null) {
-      final statusCode = err.response?.statusCode;
-      if (statusCode == 401) {
-        // Handle token expiration or unauthorized access
-        print('Unauthorized - possibly refresh token or redirect to login.');
-      } else {
-        print('Error [${statusCode}]: ${err.response?.data}');
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        options.headers['Authorization'] = 'FOODAPI $token';
       }
-    } else {
-      print('Error: ${err.message}');
+      handler.next(options);
+    } catch (e) {
+      handler.reject(
+        DioException(
+          requestOptions: options,
+          error: 'Failed to add authorization token',
+          stackTrace: StackTrace.current,
+        ),
+        true,
+      );
     }
-    super.onError(err, handler);
   }
 }
