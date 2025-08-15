@@ -3,6 +3,9 @@ import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/features/auth/presentation/view/Cart/cart_provider.dart';
 import 'package:marketiapp/features/auth/presentation/view/Congratulations/congratulation_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
+
+import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_provider.dart';
+import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass.dart';
 import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass_email.dart';
 import 'package:marketiapp/features/auth/presentation/view/HomeScreen/home_screen.dart';
@@ -25,10 +28,14 @@ class MarketiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => CartProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()),
+      ],
       child: MaterialApp(
         title: 'Marketi App',
+        debugShowCheckedModeBanner: false,
         initialRoute: '/splash',
         routes: {
           '/splash': (context) => const SplashScreen(),
@@ -69,6 +76,7 @@ class MarketiApp extends StatelessWidget {
                     as Map<String, dynamic>;
             return VerificationCodeEmail(email: args['email'] as String);
           },
+
           '/create-password': (context) {
             final args =
                 ModalRoute.of(context)!.settings.arguments
@@ -80,6 +88,7 @@ class MarketiApp extends StatelessWidget {
           },
           '/congrates-page': (context) => CongratulationsScreen(),
           '/home_screen': (context) => ProductHomePage(),
+          '/favorites': (context) => const FavoritesScreen(),
         },
       ),
     );

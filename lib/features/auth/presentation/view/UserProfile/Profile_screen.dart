@@ -143,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.person_3_sharp,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CheckoutPrompt()),
+                MaterialPageRoute(builder: (context) => const CheckoutScreen()),
               ),
             ),
 
@@ -152,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.payment,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FeedbackScreen()),
+                MaterialPageRoute(builder: (context) => const CheckoutScreen()),
               ),
             ),
 

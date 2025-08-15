@@ -5,19 +5,23 @@ import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/api/dio_consumer.dart';
 import 'package:marketiapp/core/api/end_points.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/features/auth/data/models/reset_password_request.dart';
+import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
 
 class VerificationCodeEmail extends StatefulWidget {
   final String email;
 
-  const VerificationCodeEmail({Key? key, required this.email}) : super(key: key);
+  const VerificationCodeEmail({Key? key, required this.email})
+    : super(key: key);
 
   @override
   _VerificationCodeEmailState createState() => _VerificationCodeEmailState();
 }
 
 class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
-  final List<TextEditingController> _controllers = List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _controllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   int secondsRemaining = 46;
   Ticker? _ticker;
   bool _isLoading = false;
@@ -26,10 +30,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
   @override
   void initState() {
     super.initState();
-    _apiConsumer = DioConsumer(
-      dio: Dio(),
-      getToken: () async => null,
-    );
+    _apiConsumer = DioConsumer(dio: Dio(), getToken: () async => null);
     startTimer();
   }
 
@@ -38,13 +39,9 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
     _ticker = Ticker((elapsed) {
       final newSeconds = 46 - elapsed.inSeconds;
       if (newSeconds > 0) {
-        setState(() {
-          secondsRemaining = newSeconds;
-        });
+        setState(() => secondsRemaining = newSeconds);
       } else {
-        setState(() {
-          secondsRemaining = 0;
-        });
+        setState(() => secondsRemaining = 0);
         _ticker?.stop();
       }
     });
@@ -76,16 +73,14 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
   Future<void> _onVerify() async {
     for (int i = 0; i < _controllers.length; i++) {
       if (_controllers[i].text.isEmpty) {
-        _showErrorMessage('Please enter all 4 digits');
+        _showErrorMessage('Please enter all 6 digits');
         return;
       }
     }
 
     final verificationCode = _controllers.map((c) => c.text).join();
 
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     try {
       await _apiConsumer.post(
@@ -93,17 +88,21 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
         data: {'email': widget.email, 'resetCode': verificationCode},
       );
 
-      Navigator.pushNamed(
+      Navigator.push(
         context,
-        '/create-password',
-        arguments: {'email': widget.email, 'resetCode': verificationCode},
+        MaterialPageRoute(
+          builder: (context) => CreateNewPasswordScreen(
+            email: widget.email,
+            resetCode: verificationCode,
+          ),
+        ),
       );
     } catch (e) {
       _showErrorMessage('Verification failed: ${e.toString()}');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -122,9 +121,9 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
     } catch (e) {
       _showErrorMessage('Failed to resend code: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -151,16 +150,16 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
             ),
             SizedBox(height: 20),
             Text(
-              'Please enter the 4 digit code sent to you: ${widget.email}',
+              'Please enter the 6 digit code sent to you: ${widget.email}',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
             SizedBox(height: 30),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(4, (index) {
+              children: List.generate(6, (index) {
                 return SizedBox(
-                  width: 50,
+                  width: 45,
                   child: TextField(
                     controller: _controllers[index],
                     keyboardType: TextInputType.number,
@@ -174,7 +173,7 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
                       ),
                     ),
                     onChanged: (value) {
-                      if (value.length == 1 && index < 3) {
+                      if (value.length == 1 && index < 5) {
                         FocusScope.of(context).nextFocus();
                       } else if (value.isEmpty && index > 0) {
                         FocusScope.of(context).previousFocus();
@@ -211,11 +210,15 @@ class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
                 Text('00:${secondsRemaining.toString().padLeft(2, '0')}'),
                 SizedBox(width: 20),
                 GestureDetector(
-                  onTap: secondsRemaining == 0 && !_isLoading ? _resendCode : null,
+                  onTap: secondsRemaining == 0 && !_isLoading
+                      ? _resendCode
+                      : null,
                   child: Text(
                     'Resend Code',
                     style: TextStyle(
-                      color: secondsRemaining == 0 && !_isLoading ? Colors.blue : Colors.grey,
+                      color: secondsRemaining == 0 && !_isLoading
+                          ? Colors.blue
+                          : Colors.grey,
                       decoration: TextDecoration.underline,
                     ),
                   ),

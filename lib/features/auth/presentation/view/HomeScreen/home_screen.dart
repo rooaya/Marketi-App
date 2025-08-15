@@ -3,6 +3,8 @@ import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/features/auth/presentation/view/Cart/badge_icon.dart';
 import 'package:marketiapp/features/auth/presentation/view/Cart/cart_provider.dart';
 import 'package:marketiapp/features/auth/presentation/view/Cart/cart_screen.dart';
+import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_provider.dart';
+import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -40,16 +42,17 @@ class ProductHomePage extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                      IconButton(
-      icon: const Icon(Icons.person_2_rounded, size: 30),
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProfileScreen()),
-        );
-      },
-    ),
-
+                  IconButton(
+                    icon: const Icon(Icons.person_2_rounded, size: 30),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -270,159 +273,176 @@ class ProductHomePage extends StatelessWidget {
     String imageUrl,
     double rating,
   ) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool isFavorite = false;
+    final favoritesProvider = Provider.of<FavoritesProvider>(
+      context,
+      listen: false,
+    );
 
-        return Card(
-          elevation: 2,
-          margin: const EdgeInsets.all(8),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.all(8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Product image
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.asset(
+                      imageUrl,
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey[200],
+                        child: const Icon(Icons.image),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$price LE',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Row(
                   children: [
-                    // Product image
-                    Center(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.asset(
-                          imageUrl,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                                width: 100,
-                                height: 100,
-                                color: Colors.grey[200],
-                                child: const Icon(
-                                  Icons.image,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Product details
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$price LE', // Convert double to string with 'LE' suffix
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(Icons.star, color: Colors.amber, size: 16),
-                        const SizedBox(width: 4),
-                        Text(
-                          rating.toString(),
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        const Spacer(),
-                      ],
-                    ),
+                    Icon(Icons.star, color: Colors.amber, size: 16),
+                    const SizedBox(width: 4),
+                    Text(rating.toString()),
+                    const Spacer(),
                   ],
                 ),
-              ),
-
-              // Favorite icon
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Provider.of<CartProvider>(
-                      context,
-                      listen: false,
-                    ).addItem(id, name, imageUrl, price);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$name added to cart'),
-                        duration: const Duration(seconds: 1),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    minimumSize: Size.zero,
-                  ),
-                  child: const Text(
-                    'Add',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
-                  ),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
+          // Favorite icon
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Consumer<FavoritesProvider>(
+              builder: (context, favorites, child) {
+                return IconButton(
+                  icon: Icon(
+                    favorites.isFavorite(id)
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: favorites.isFavorite(id) ? Colors.red : Colors.grey,
+                  ),
+                  onPressed: () {
+                    if (favorites.isFavorite(id)) {
+                      favorites.removeFromFavorites(id);
+                    } else {
+                      favorites.addToFavorites({
+                        'id': id,
+                        'name': name,
+                        'price': price,
+                        'imageUrl': imageUrl,
+                        'rating': rating,
+                      });
+                    }
+                  },
+                );
+              },
+            ),
+          ),
+          // Add to cart button
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: ElevatedButton(
+              onPressed: () {
+                Provider.of<CartProvider>(
+                  context,
+                  listen: false,
+                ).addItem(id, name, imageUrl, price);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('$name added to cart'),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                minimumSize: Size.zero,
+              ),
+              child: const Text(
+                'Add',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    final cart = Provider.of<CartProvider>(context);
+    return BottomNavigationBar(
+      currentIndex: 0, // Home is selected
+      type: BottomNavigationBarType.fixed,
+      selectedItemColor: Colors.blue,
+      unselectedItemColor: Colors.grey,
+      items: [
+        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(
+          icon: BadgeIcon(icon: Icons.shopping_cart, count: cart.items.length),
+          label: 'Cart',
+        ),
+        const BottomNavigationBarItem(
+          icon: Icon(Icons.favorite),
+          label: 'Favorites',
+        ),
+        const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+      ],
+      onTap: (index) {
+        switch (index) {
+          case 1:
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CartScreen()),
+            );
+            break;
+          case 2:
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+            );
+            break;
+          // Case 0 (Home) and 3 (Menu) don't need actions
+        }
       },
     );
   }
-}
-
-Widget _buildBottomNavigationBar(BuildContext context) {
-  final cart = Provider.of<CartProvider>(context);
-  return BottomNavigationBar(
-    currentIndex: 0, // Home is selected
-    type: BottomNavigationBarType.fixed,
-    selectedItemColor: Colors.blue,
-    unselectedItemColor: Colors.grey,
-    items: [
-      const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-      BottomNavigationBarItem(
-        icon: BadgeIcon(icon: Icons.shopping_cart, count: cart.items.length),
-        label: 'Cart',
-      ),
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.favorite),
-        label: 'Favorites',
-      ),
-      const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-    ],
-    onTap: (index) {
-      switch (index) {
-        case 1:
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const CartScreen()),
-          );
-          break;
-        case 2:
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(builder: (context) => const FavouriteScreen()),
-          // );
-          break;
-        // Case 0 (Home) and 3 (Menu) don't need actions
-      }
-    },
-  );
 }

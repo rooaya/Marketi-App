@@ -30,6 +30,7 @@ environment:
 dependencies:
 
   cupertino_icons: ^1.0.8
+  flutter_polyline_points: ^1.0.0
   dio: ^5.9.0
   animate_do: ^4.2.0
   auto_size_text: ^3.0.0
