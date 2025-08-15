@@ -70,26 +70,28 @@ class MarketiApp extends StatelessWidget {
           },
           '/forgot-password-phone': (context) => ForgotPasswordPhoneScreen(),
           '/forgot-password-email': (context) => ForgotPasswordEmailScreen(),
-          '/verification-email': (context) {
-            final args =
-                ModalRoute.of(context)!.settings.arguments
-                    as Map<String, dynamic>;
-            return VerificationCodeEmail(email: args['email'] as String);
-          },
+        
 
-          '/create-password': (context) {
-            final args =
-                ModalRoute.of(context)!.settings.arguments
-                    as Map<String, dynamic>;
-            return CreateNewPasswordScreen(
-              email: args['email'] as String,
-              resetCode: args['resetCode'] as String,
-            );
-          },
+  '/verification-email': (context) {
+    final email = ModalRoute.of(context)!.settings.arguments as String;
+    print('Route /verification-email created with email: $email'); // Debug
+    return VerificationCodeEmail(email: email);
+  },
+
+
+        '/create-password': (context) {
+    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+    print('Route /create-password created with args: $args'); // Debug
+    return CreateNewPasswordScreen(
+      email: args['email'] as String,
+      resetCode: args['resetCode'] as String,
+    );
+  },
           '/congrates-page': (context) => CongratulationsScreen(),
           '/home_screen': (context) => ProductHomePage(),
           '/favorites': (context) => const FavoritesScreen(),
         },
+        
       ),
     );
   }

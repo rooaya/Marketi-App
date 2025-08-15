@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/core/theme/app_colors.dart';
+import 'package:marketiapp/features/auth/presentation/view/Cart/cart_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/CheckOut/check_out_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/Login/login_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/UserProfile/feedback_screen.dart';
@@ -143,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.person_3_sharp,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                MaterialPageRoute(builder: (context) => const CartScreen()),
               ),
             ),
 
@@ -152,7 +153,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Icons.payment,
               () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const CheckoutScreen()),
+                MaterialPageRoute(builder: (context) => const CartScreen()),
               ),
             ),
 

@@ -10,7 +10,6 @@ class EndPoints {
   static const String activeResetPass = '/auth/activeResetPass';
   static const String resetPass = '/auth/resetPassword';
   
-  
 
   static const String userData = '/portofolio/userData';
 
