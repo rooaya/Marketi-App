@@ -4,7 +4,7 @@ import 'package:marketiapp/features/auth/presentation/view/Cart/badge_icon.dart'
 import 'package:marketiapp/features/auth/presentation/view/Cart/cart_provider.dart';
 import 'package:marketiapp/features/auth/presentation/view/Cart/cart_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_provider.dart';
-import 'package:marketiapp/features/auth/presentation/view/HomeScreen/home_screen.dart';
+import 'package:marketiapp/features/auth/presentation/view/ProductScreens/home_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -203,7 +203,7 @@ class FavoritesScreen extends StatelessWidget {
           case 0:
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => ProductHomePage()),
+              MaterialPageRoute(builder: (context) => HomeScreen()),
             );
             break;
           case 1:

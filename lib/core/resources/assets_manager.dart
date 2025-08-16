@@ -52,7 +52,7 @@ class AppAssets {
   static const String Canon = 'assets/images/CanonBrand.png';
   static const String Apple = 'asstes/images/AppleIcon.png';
   static const String adidas = 'asstes/images/AdidasIcon.png';
-  static const String lacost = 'asstes/images/LacostIcon.png';
+  static const String lacost = 'asstes/images/lacost.png';
   static const String toshipa = 'asstes/images/ToshipaIcon.png';
 
   // App Icons

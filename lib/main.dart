@@ -8,7 +8,7 @@ import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_
 import 'package:marketiapp/features/auth/presentation/view/Favourite/favourites_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass.dart';
 import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass_email.dart';
-import 'package:marketiapp/features/auth/presentation/view/HomeScreen/home_screen.dart';
+import 'package:marketiapp/features/auth/presentation/view/ProductScreens/home_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/Login/login_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/OnBoarding/onboarding1_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/OnBoarding/onboarding2_screen.dart';
@@ -88,7 +88,7 @@ class MarketiApp extends StatelessWidget {
     );
   },
           '/congrates-page': (context) => CongratulationsScreen(),
-          '/home_screen': (context) => ProductHomePage(),
+          '/home_screen': (context) => HomeScreen(),
           '/favorites': (context) => const FavoritesScreen(),
         },
         
