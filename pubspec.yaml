@@ -54,6 +54,7 @@ dependencies:
   smooth_page_indicator: ^1.2.1
   image_picker: ^1.1.2
 
+  provider: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,3 +1,4 @@
+// forgot_password_phone_screen.dart (standalone - no Cubit needed for this UI)
 import 'package:flutter/material.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 
@@ -14,8 +15,6 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
   bool _isPhoneEmpty = false;
   String _selectedCountryCode = '+20';
   bool _isNumberTyped = false; 
-  OverlayEntry? _overlayEntry;
-  final LayerLink _layerLink = LayerLink();
   final FocusNode _focusNode = FocusNode();
 
   final List<Map<String, String>> countryCodes = [
@@ -29,11 +28,6 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
   @override
   void initState() {
     super.initState();
-    _focusNode.addListener(() {
-      if (!_focusNode.hasFocus) {
-        _removeOverlay();
-      }
-    });
     _phoneController.addListener(() {
       setState(() {
         _isNumberTyped = _phoneController.text.isNotEmpty;
@@ -45,23 +39,18 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
   void dispose() {
     _phoneController.dispose();
     _focusNode.dispose();
-    _removeOverlay(); 
-  }
-
-  void _removeOverlay() {
-    _overlayEntry?.remove();
-    _overlayEntry = null;
+    super.dispose();
   }
 
   void _showErrorMessage(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: Colors.white)),
         backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
+        margin: const EdgeInsets.all(16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
       ),
     );
   }
@@ -105,7 +94,7 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Forgot Password', style: TextStyle(color: Colors.black)),
+        title: const Text('Forgot Password', style: TextStyle(color: Colors.black)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -120,16 +109,16 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
                 fit: BoxFit.contain,
               ),
             ),
-            SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 20),
+            const Text(
               'Please enter your phone number to receive a verification code',
               style: TextStyle(
-                color: const Color.fromARGB(255, 105, 97, 97),
+                color: Color.fromARGB(255, 105, 97, 97),
                 fontSize: 16,
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             TextField(
               controller: _phoneController,
               focusNode: _focusNode,
@@ -140,20 +129,20 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
               decoration: InputDecoration(
                 hintText: '1501142409',
                 fillColor: const Color.fromARGB(255, 236, 231, 231),
-                prefixIcon: Icon(Icons.phone_android, color: Colors.blue),
+                prefixIcon: const Icon(Icons.phone_android, color: Colors.blue),
                 suffix: GestureDetector(
                   onTap: _showCountryCodeOptions,
                   child: Container(
                     width: 80,
-                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           _selectedCountryCode,
-                          style: TextStyle(color: Colors.black),
+                          style: const TextStyle(color: Colors.black),
                         ),
-                        Icon(
+                        const Icon(
                           Icons.arrow_drop_down,
                           color: Colors.grey,
                         ),
@@ -167,12 +156,12 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.blue),
+                  borderSide: const BorderSide(color: Colors.blue),
                 ),
                 errorText: _isPhoneEmpty ? 'This field is required' : null,
               ),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
               height: 50,
@@ -184,18 +173,18 @@ class _ForgotPasswordPhoneScreenState extends State<ForgotPasswordPhoneScreen> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                child: Text(
+                child: const Text(
                   'Send Code',
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/forgot-password-email');
               },
-              child: Text(
+              child: const Text(
                 'Try Another Way',
                 style: TextStyle(color: Colors.blue, fontSize: 14),
               ),

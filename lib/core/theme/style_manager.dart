@@ -243,7 +243,6 @@ class AppTheme {
         primary: MarketiColors.primaryRed,
         secondary: MarketiColors.primaryBlue,
         surface: MarketiColors.white,
-        background: MarketiColors.backgroundLight,
         error: MarketiColors.error,
       ),
       scaffoldBackgroundColor: MarketiColors.backgroundLight,

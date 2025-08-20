@@ -1,17 +1,30 @@
+////! baseUrl
 class EndPoints {
-  static const String baseUrl = 'https://supermarket-dan1.onrender.com/api/v1';
 
-  
-  static const String signIn = '/auth/signin';
-  static const String signUp = '/auth/signup';
+  static String baseUrl = "https://marketi-app.onrender.com/api/v1/";
+  //! Auth  ------------------------------------------------------
+  static String signIn = "auth/signIn";
+  static String signUp = "auth/signUp";
+  static String signOut = "auth/oAuth/signOut";
+  static String sendPassEmail = "auth/sendPassEmail";
+  static String activeResetPass = "auth/activeResetPass";
+  static String resetPassword = "auth/resetPassword";
+  //! Home  ------------------------------------------------------
+  static String products = "home/products";
+  static String brands = "home/brands";
+  static String categories = "home/categories";
 
-  
-  static const String resetpass = '/auth/resetPassCode';
-  static const String activeResetPass = '/auth/activeResetPass';
-  static const String resetPass = '/auth/resetPassword';
-  
+}
 
-  static const String userData = '/portofolio/userData';
+class ApiKey {
+  static String status = "status";
+  static String errorMessage = "ErrorMessage";
+  static String email = "email";
+  static String password = "password";
+  static String authorization = "Authorization";
+}
 
-
+class StorageKeys {
+  static String hasCompletedOnboarding = "hasCompletedOnboarding";
+  static String token = "token";
 }

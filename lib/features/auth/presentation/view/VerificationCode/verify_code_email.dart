@@ -1,230 +1,247 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
-import 'package:marketiapp/core/api/api_consumer.dart';
-import 'package:marketiapp/core/api/dio_consumer.dart';
-import 'package:marketiapp/core/api/end_points.dart';
-import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/features/auth/data/models/reset_password_response.dart';
-import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
+// import 'package:dio/dio.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter/scheduler.dart';
+// import 'package:marketiapp/core/api/api_consumer.dart';
+// import 'package:marketiapp/core/api/dio_consumer.dart';
+// import 'package:marketiapp/core/api/end_points.dart';
+// import 'package:marketiapp/core/resources/assets_manager.dart';
+// import 'package:marketiapp/features/auth/data/models/ResetPass/reset_password_response.dart';
+// import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
 
-class VerificationCodeEmail extends StatefulWidget {
-  final String email;
-  const VerificationCodeEmail({Key? key, required this.email}) : super(key: key);
+// class VerificationCodeEmail extends StatefulWidget {
+//   final String email;
+//   const VerificationCodeEmail({super.key, required this.email});
 
-  @override
-  _VerificationCodeEmailState createState() => _VerificationCodeEmailState();
-}
+//   @override
+//   _VerificationCodeEmailState createState() => _VerificationCodeEmailState();
+// }
 
-class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
-  int secondsRemaining = 46;
-  Ticker? _ticker;
-  bool _isLoading = false;
-  late ApiConsumer _apiConsumer;
+// class _VerificationCodeEmailState extends State<VerificationCodeEmail> {
+//   final List<TextEditingController> _controllers = List.generate(
+//     6,
+//     (_) => TextEditingController(),
+//   );
+//   int secondsRemaining = 46;
+//   Ticker? _ticker;
+//   bool _isLoading = false;
+//   late ApiConsumer _apiConsumer;
 
-  @override
-  void initState() {
-    super.initState();
-    _apiConsumer = DioConsumer(dio: Dio(), getToken: () async => null);
-    startTimer();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _apiConsumer = DioConsumer(dio: Dio(), getToken: () async => null);
+//     startTimer();
+//   }
 
-  void startTimer() {
-    _ticker?.dispose();
-    _ticker = Ticker((elapsed) {
-      final newSeconds = 46 - elapsed.inSeconds;
-      if (newSeconds > 0) {
-        setState(() => secondsRemaining = newSeconds);
-      } else {
-        setState(() => secondsRemaining = 0);
-        _ticker?.stop();
-      }
-    });
-    _ticker?.start();
-  }
+//   void startTimer() {
+//     _ticker?.dispose();
+//     _ticker = Ticker((elapsed) {
+//       final newSeconds = 46 - elapsed.inSeconds;
+//       if (newSeconds > 0) {
+//         setState(() => secondsRemaining = newSeconds);
+//       } else {
+//         setState(() => secondsRemaining = 0);
+//         _ticker?.stop();
+//       }
+//     });
+//     _ticker?.start();
+//   }
 
-  @override
-  void dispose() {
-    _ticker?.dispose();
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _ticker?.dispose();
+//     for (var controller in _controllers) {
+//       controller.dispose();
+//     }
+//     super.dispose();
+//   }
 
-  void _showErrorMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        backgroundColor: Colors.redAccent,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        duration: const Duration(seconds: 3),
-      ),
-    );
-  }
+//   void _showErrorMessage(String message) {
+//     ScaffoldMessenger.of(context).showSnackBar(
+//       SnackBar(
+//         content: Text(message, style: const TextStyle(color: Colors.white)),
+//         backgroundColor: Colors.redAccent,
+//         behavior: SnackBarBehavior.floating,
+//         margin: const EdgeInsets.all(16),
+//         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+//         duration: const Duration(seconds: 3),
+//       ),
+//     );
+//   }
 
-  Future<void> _onVerify() async {
-    for (int i = 0; i < _controllers.length; i++) {
-      if (_controllers[i].text.isEmpty) {
-        _showErrorMessage('Please enter all 6 digits');
-        return;
-      }
-    }
+//   Future<void> _onVerify() async {
+//     for (int i = 0; i < _controllers.length; i++) {
+//       if (_controllers[i].text.isEmpty) {
+//         _showErrorMessage('Please enter all 6 digits');
+//         return;
+//       }
+//     }
 
-    final verificationCode = _controllers.map((c) => c.text).join();
-    setState(() => _isLoading = true);
+//     final verificationCode = _controllers.map((c) => c.text).join();
+//     setState(() => _isLoading = true);
 
-    try {
-      final response = await _apiConsumer.post(
-        EndPoints.activeResetPass,
-        data: {'email': widget.email, 'resetCode': verificationCode},
-      );
+//     try {
+//       final Response response = await _apiConsumer.post(
+//         EndPoints.activeResetPass,
+//         data: {'email': widget.email, 'code': verificationCode},
+//       );
 
-      final resetResponse = ResetPasswordResponse.fromJson(response);
-      
-      if (resetResponse.success) {
-        if (!mounted) return;
-        
-        // GUARANTEED NAVIGATION SOLUTION
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CreateNewPasswordScreen(
-                email: widget.email,
-                resetCode: verificationCode,
-              ),
-            ),
-          );
-        });
-      } else {
-        _showErrorMessage(resetResponse.message ?? 'Verification failed');
-      }
-    } on DioException catch (e) {
-      _showErrorMessage('Verification failed: ${e.response?.data['message'] ?? e.message}');
-    } catch (e) {
-      _showErrorMessage('An unexpected error occurred');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
+//       final resetResponse = ResetPasswordResponse.fromJson(response.data);
+//       print("StatuesCode: ${response.statusCode} ");
+//       if (response.statusCode == 200) {
+//         if (!mounted) return;
 
-  Future<void> _resendCode() async {
-    setState(() {
-      secondsRemaining = 46;
-      _isLoading = true;
-    });
-    startTimer();
+//         // GUARANTEED NAVIGATION SOLUTION
+//         WidgetsBinding.instance.addPostFrameCallback((_) {
+//           Navigator.push(
+//             context,
+//             MaterialPageRoute(
+//               builder: (context) =>
+//                   CreateNewPasswordScreen(email: widget.email),
+//             ),
+//           );
+//         });
+//       } else {
+//         _showErrorMessage(resetResponse.message ?? 'Verification failed');
+//       }
+//     } on DioException catch (e) {
+//       _showErrorMessage(
+//         'Verification failed: ${e.response?.data['message'] ?? e.message}',
+//       );
+//     } catch (e) {
+//       _showErrorMessage('An unexpected error occurred');
+//     } finally {
+//       if (mounted) {
+//         setState(() => _isLoading = false);
+//       }
+//     }
+//   }
 
-    try {
-      await _apiConsumer.post(
-        EndPoints.resetpass,
-        data: {'email': widget.email},
-      );
-    } catch (e) {
-      _showErrorMessage('Failed to resend code: $e');
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
-  }
+//   Future<void> _resendCode() async {
+//     setState(() {
+//       secondsRemaining = 46;
+//       _isLoading = true;
+//     });
+//     startTimer();
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: const BackButton(color: Colors.black),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text('Verification Code', style: TextStyle(color: Colors.black)),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            Container(
-              height: 200,
-              child: Image.asset(AppAssets.forgotpassEmail, fit: BoxFit.contain),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'Please enter the 6 digit code sent to you: ${widget.email}',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-            ),
-            const SizedBox(height: 30),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: List.generate(6, (index) {
-                return SizedBox(
-                  width: 45,
-                  child: TextField(
-                    controller: _controllers[index],
-                    keyboardType: TextInputType.number,
-                    textAlign: TextAlign.center,
-                    maxLength: 1,
-                    style: const TextStyle(fontSize: 24),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    onChanged: (value) {
-                      if (value.length == 1 && index < 5) {
-                        FocusScope.of(context).nextFocus();
-                      } else if (value.isEmpty && index > 0) {
-                        FocusScope.of(context).previousFocus();
-                      }
-                    },
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 30),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                onPressed: _isLoading ? null : _onVerify,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-                ),
-                child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Verify Code',
-                        style: TextStyle(fontSize: 16, color: Colors.white),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('00:${secondsRemaining.toString().padLeft(2, '0')}'),
-                const SizedBox(width: 20),
-                GestureDetector(
-                  onTap: secondsRemaining == 0 && !_isLoading ? _resendCode : null,
-                  child: Text(
-                    'Resend Code',
-                    style: TextStyle(
-                      color: secondsRemaining == 0 && !_isLoading ? Colors.blue : Colors.grey,
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//     try {
+//       await _apiConsumer.post(
+//         EndPoints.resetPassword,
+//         data: {'email': widget.email},
+//       );
+//     } catch (e) {
+//       _showErrorMessage('Failed to resend code: $e');
+//     } finally {
+//       if (mounted) {
+//         setState(() => _isLoading = false);
+//       }
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         leading: const BackButton(color: Colors.black),
+//         backgroundColor: Colors.white,
+//         elevation: 0,
+//         title: const Text(
+//           'Verification Code',
+//           style: TextStyle(color: Colors.black),
+//         ),
+//         centerTitle: true,
+//       ),
+//       body: Padding(
+//         padding: const EdgeInsets.all(20.0),
+//         child: Column(
+//           children: [
+//             SizedBox(
+//               height: 200,
+//               child: Image.asset(
+//                 AppAssets.forgotpassEmail,
+//                 fit: BoxFit.contain,
+//               ),
+//             ),
+//             const SizedBox(height: 20),
+//             Text(
+//               'Please enter the 6 digit code sent to you: ${widget.email}',
+//               textAlign: TextAlign.center,
+//               style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+//             ),
+//             const SizedBox(height: 30),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//               children: List.generate(6, (index) {
+//                 return SizedBox(
+//                   width: 45,
+//                   child: TextField(
+//                     controller: _controllers[index],
+//                     keyboardType: TextInputType.number,
+//                     textAlign: TextAlign.center,
+//                     maxLength: 1,
+//                     style: const TextStyle(fontSize: 24),
+//                     decoration: InputDecoration(
+//                       counterText: '',
+//                       border: OutlineInputBorder(
+//                         borderRadius: BorderRadius.circular(8),
+//                       ),
+//                     ),
+//                     onChanged: (value) {
+//                       if (value.length == 1 && index < 5) {
+//                         FocusScope.of(context).nextFocus();
+//                       } else if (value.isEmpty && index > 0) {
+//                         FocusScope.of(context).previousFocus();
+//                       }
+//                     },
+//                   ),
+//                 );
+//               }),
+//             ),
+//             const SizedBox(height: 30),
+//             SizedBox(
+//               width: double.infinity,
+//               height: 50,
+//               child: ElevatedButton(
+//                 onPressed: _isLoading ? null : _onVerify,
+//                 style: ElevatedButton.styleFrom(
+//                   backgroundColor: Colors.blue,
+//                   shape: RoundedRectangleBorder(
+//                     borderRadius: BorderRadius.circular(25),
+//                   ),
+//                 ),
+//                 child: _isLoading
+//                     ? const CircularProgressIndicator(color: Colors.white)
+//                     : const Text(
+//                         'Verify Code',
+//                         style: TextStyle(fontSize: 16, color: Colors.white),
+//                       ),
+//               ),
+//             ),
+//             const SizedBox(height: 20),
+//             Row(
+//               mainAxisAlignment: MainAxisAlignment.center,
+//               children: [
+//                 Text('00:${secondsRemaining.toString().padLeft(2, '0')}'),
+//                 const SizedBox(width: 20),
+//                 GestureDetector(
+//                   onTap: secondsRemaining == 0 && !_isLoading
+//                       ? _resendCode
+//                       : null,
+//                   child: Text(
+//                     'Resend Code',
+//                     style: TextStyle(
+//                       color: secondsRemaining == 0 && !_isLoading
+//                           ? Colors.blue
+//                           : Colors.grey,
+//                       decoration: TextDecoration.underline,
+//                     ),
+//                   ),
+//                 ),
+//               ],
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }

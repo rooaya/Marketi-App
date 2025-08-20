@@ -1,44 +1,31 @@
-import 'package:dio/dio.dart';
+// create_new_pass_screen.dart (modified)
 import 'package:flutter/material.dart';
-import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:marketiapp/core/api/dio_consumer.dart';
-import 'package:marketiapp/core/api/end_points.dart';
 import 'package:marketiapp/core/helpers/validetor.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/features/auth/data/models/reset_password_response.dart';
+import 'package:marketiapp/features/auth/data/repo/auth_repo.dart';
+import 'package:marketiapp/features/auth/presentation/vm/createpass/createpass_cubit.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CreateNewPasswordScreen extends StatefulWidget {
   final String email;
-  final String resetCode;
 
-  const CreateNewPasswordScreen({
-    super.key,
-    required this.email,
-    required this.resetCode,
-  });
+  const CreateNewPasswordScreen({super.key, required this.email});
 
   @override
-  _CreateNewPasswordScreenState createState() => _CreateNewPasswordScreenState();
+  _CreateNewPasswordScreenState createState() =>
+      _CreateNewPasswordScreenState();
 }
 
 class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  late ApiConsumer _apiConsumer;
 
-  @override
-  void initState() {
-    super.initState();
-    _apiConsumer = DioConsumer(
-      dio: Dio(),
-      getToken: () async => null,
-    );
-  }
-
-  void _showMessage(String message, {bool isError = true}) {
+  void _showMessage(BuildContext context, String message, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message, style: const TextStyle(color: Colors.white)),
@@ -51,120 +38,121 @@ class _CreateNewPasswordScreenState extends State<CreateNewPasswordScreen> {
     );
   }
 
-  Future<void> _resetPassword() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      _showMessage('Passwords do not match');
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      final response = await _apiConsumer.post(
-        EndPoints.resetPass,
-        data: {
-          'email': widget.email,
-          'newPassword': _passwordController.text.trim(),
-          'resetCode': widget.resetCode,
-        },
+  Future<void> _updateSavedPassword() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool('isLoggedIn') == true &&
+        prefs.getString('email') == widget.email) {
+      await prefs.setString(
+        'savedPassword',
+        _passwordController.text.trim(),
       );
-
-      final resetResponse = ResetPasswordResponse.fromJson(response);
-      if (resetResponse.success) {
-        _showMessage('Password updated successfully!', isError: false);
-        
-        final prefs = await SharedPreferences.getInstance();
-        if (prefs.getBool('isLoggedIn') == true && 
-            prefs.getString('email') == widget.email) {
-          await prefs.setString('savedPassword', _passwordController.text.trim());
-        }
-        
-        Navigator.pushReplacementNamed(context, '/login');
-      } else {
-        _showMessage(resetResponse.message ?? 'Password update failed');
-      }
-    } catch (e) {
-      _showMessage('Error updating password: ${e.toString()}');
-    } finally {
-      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+    return BlocProvider(
+      create: (context) => CreatepassCubit(
+        authRepo: AuthRepo(
+          api: DioConsumer(dio: Dio()), // Fixed constructor
         ),
-        title: const Text('Create New Password'),
-        centerTitle: true,
+        email: widget.email,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              Image.asset(AppAssets.createnewpass),
-              const SizedBox(height: 20),
-              Text(
-                'New password must be different from last password',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
-                textAlign: TextAlign.center,
+      child: BlocConsumer<CreatepassCubit, CreatepassState>(
+        listener: (context, state) {
+          if (state is CreatepassSuccess) {
+            _updateSavedPassword();
+            _showMessage(context, 'Password updated successfully!', isError: false);
+            Navigator.pushReplacementNamed(context, '/congrates-page');
+          } else if (state is CreatepassFailure) {
+            _showMessage(context, state.error);
+          }
+        },
+        builder: (context, state) {
+          final isLoading = state is CreatepassLoading;
+          
+          return Scaffold(
+            appBar: AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
               ),
-              const SizedBox(height: 40),
-              TextFormField(
-                controller: _passwordController,
-                obscureText: true,
-                validator: TValidator.validatePassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  prefixIcon: const Icon(Icons.lock_outline),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: true,
-                validator: (value) => TValidator.validateEmptyText('Confirm Password', value),
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  prefixIcon: const Icon(Icons.lock_reset),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _resetPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+              title: const Text('Create New Password'),
+              centerTitle: true,
+            ),
+            body: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    Image.asset(AppAssets.createnewpass),
+                    const SizedBox(height: 20),
+                    Text(
+                      'New password must be different from last password',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Save Password',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
+                    const SizedBox(height: 40),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      validator: TValidator.validatePassword,
+                      decoration: InputDecoration(
+                        labelText: 'Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _confirmPasswordController,
+                      obscureText: true,
+                      validator: (value) =>
+                          TValidator.validateEmptyText('Confirm Password', value),
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: const Icon(Icons.lock_reset),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : () {
+                          if (_formKey.currentState!.validate()) {
+                            context.read<CreatepassCubit>().resetPassword(
+                              newPassword: _passwordController.text.trim(),
+                              confirmPassword: _confirmPasswordController.text.trim(),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
+                                'Save Password',
+                                style: TextStyle(fontSize: 16, color: Colors.white),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

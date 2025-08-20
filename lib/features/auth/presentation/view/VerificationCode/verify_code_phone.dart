@@ -4,6 +4,8 @@ import 'dart:async';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 
 class VerificationCodeScreen extends StatefulWidget {
+  const VerificationCodeScreen({super.key});
+
   @override
   _VerificationCodeScreenState createState() => _VerificationCodeScreenState();
 }
