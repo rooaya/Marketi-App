@@ -1,194 +1,294 @@
+// lib/features/Favorites/presentation/view/Favourite/favourites_screen.dart
 import 'package:flutter/material.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/badge_icon.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
 import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_screen.dart';
-import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_provider.dart';
+
+import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/home_screen.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final favorites = Provider.of<FavoritesProvider>(context).favoriteItems;
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavigationBar(context, currentIndex: 2),
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  String? _token;
 
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Row
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Favorites',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.person_2_rounded, size: 30),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _token = prefs.getString('token');
+    });
+    
+    if (_token != null) {
+      final favoriteCubit = context.read<FavoriteCubit>();
+      favoriteCubit.getFavorites(_token!);
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  Widget _buildCartBadge(int count) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        const Icon(Icons.shopping_cart),
+        if (count > 0)
+          Positioned(
+            top: -8,
+            right: -8,
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 8),
-
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "What are you looking for?",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 2.0,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: const Color.fromARGB(255, 255, 253, 253),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 20,
-                  ),
+              constraints: const BoxConstraints(
+                minWidth: 16,
+                minHeight: 16,
+              ),
+              child: Text(
+                count.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
                 ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'All Products',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: favorites.length,
-                  itemBuilder: (context, index) {
-                    final item = favorites[index];
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              item['imageUrl'],
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  Container(
-                                    width: 80,
-                                    height: 80,
-                                    color: Colors.grey[200],
-                                    child: const Icon(Icons.image),
-                                  ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = Provider.of<CartProvider>(context);
+    final favoriteCubit = context.read<FavoriteCubit>();
+
+    return BlocConsumer<FavoriteCubit, FavoriteState>(
+      listener: (context, state) {
+        if (state is FavoriteAddSuccess) {
+          _showSnackBar('Added to favorites!', isError: false);
+        } else if (state is FavoriteRemoveSuccess) {
+          _showSnackBar('Removed from favorites!', isError: false);
+        } else if (state is FavoriteFailure || state is FavoriteAddFailure || state is FavoriteRemoveFailure) {
+          final errorState = state as dynamic;
+          _showSnackBar(errorState.error);
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is FavoriteLoading ||  state is FavoriteAddLoading || 
+                        state is FavoriteRemoveLoading;
+
+        final favorites = state is FavoriteSuccess ? state.favoriteResponse.list : [];
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          bottomNavigationBar: _buildBottomNavigationBar(context, cart, currentIndex: 2),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header Row
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Favorites',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.person_2_rounded, size: 30),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item['name'],
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  if (_token == null)
+                    _buildLoginRequired(context)
+                  else if (isLoading)
+                    const Expanded(child: Center(child: CircularProgressIndicator()))
+                  else if (favorites.isEmpty)
+                    _buildEmptyFavorites(context)
+                  else
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'All Products',
+                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 16),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: favorites.length,
+                              itemBuilder: (context, index) {
+                                final item = favorites[index];
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  child: ListTile(
+                                    leading: Image.asset(
+                                      'assets/images/product_placeholder.png', // Fallback image
+                                      width: 60,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          Container(
+                                            width: 60,
+                                            height: 60,
+                                            color: Colors.grey[200],
+                                            child: const Icon(Icons.image),
+                                          ),
+                                    ),
+                                    title: Text(
+                                      item.name,
+                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(
+                                        Icons.favorite,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        favoriteCubit.removeFromFavorite(_token!, item.id);
+                                      },
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text('${item['price']} LE'),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.star,
-                                        color: Colors.amber,
-                                        size: 16,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(item['rating'].toString()),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                              ),
-                              onPressed: () {
-                                Provider.of<FavoritesProvider>(
-                                  context,
-                                  listen: false,
-                                ).removeFromFavorites(item['id']);
+                                );
                               },
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                ),
+                    ),
+                ],
               ),
-            ],
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoginRequired(BuildContext context) {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.login, size: 64, color: Colors.grey),
+            const SizedBox(height: 20),
+            const Text(
+              "Login Required",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "Please login to view your favorites",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/login');
+              },
+              child: const Text('Login'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyFavorites(BuildContext context) {
+    return Expanded(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.favorite_border, size: 64, color: Colors.grey),
+            const SizedBox(height: 20),
+            const Text(
+              "No Favorites Yet",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            const Text(
+              "Start adding products to your favorites",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Browse Products'),
+            ),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildBottomNavigationBar(
-    BuildContext context, {
+    BuildContext context,
+    CartProvider cart, {
     required int currentIndex,
   }) {
-    final cart = Provider.of<CartProvider>(context);
     return BottomNavigationBar(
-      currentIndex: currentIndex, // Use the passed currentIndex parameter
+      currentIndex: currentIndex,
       type: BottomNavigationBarType.fixed,
       selectedItemColor: Colors.blue,
       unselectedItemColor: Colors.grey,
       items: [
         const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
         BottomNavigationBarItem(
-          icon: BadgeIcon(icon: Icons.shopping_cart, count: cart.items.length),
+          icon: _buildCartBadge(cart.items.length),
           label: 'Cart',
         ),
         const BottomNavigationBarItem(
@@ -200,10 +300,10 @@ class FavoritesScreen extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 0:
-            // Navigator.pushReplacement(
-            //   // context,
-            //   // MaterialPageRoute(builder: (context) => HomeScreen()),
-            // );
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
             break;
           case 1:
             Navigator.pushReplacement(
@@ -212,10 +312,7 @@ class FavoritesScreen extends StatelessWidget {
             );
             break;
           case 2:
-            // Already on Favorites screen, no need to navigate
-            break;
-          case 3:
-            // Handle menu navigation
+            // Already on Favorites screen
             break;
         }
       },

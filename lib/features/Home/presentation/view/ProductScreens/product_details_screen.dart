@@ -1,3 +1,4 @@
+// lib/features/home/presentation/view/ProductScreens/product_details_screen.dart
 import 'package:flutter/material.dart';
 import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';

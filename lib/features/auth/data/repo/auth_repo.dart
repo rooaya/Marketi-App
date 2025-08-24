@@ -23,7 +23,7 @@ class AuthRepo {
       final response = await api.post(EndPoints.signIn, data: body.toJson());
       final signInResponse = SigninResponse.fromJson(response);
       
-      await CacheHelper().saveData(
+      await CacheHelper.saveData(
         key: StorageKeys.token,
         value: signInResponse.token,
       );

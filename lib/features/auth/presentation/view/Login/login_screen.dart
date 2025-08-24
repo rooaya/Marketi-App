@@ -117,14 +117,19 @@ class _LoginScreenState extends State<LoginScreen> {
               _passwordController.text.trim(),
             );
             _showSuccessMessage(context, 'Login successful!');
+            Navigator.pushNamed(context, '/home_screen');
+
             widget.onLoginSuccess();
           } else if (state is LoginFailure) {
-            _showErrorMessage(context, 'Login failed: ${_mapFailureToMessage(state.failure)}');
+            _showErrorMessage(
+              context,
+              'Login failed: ${_mapFailureToMessage(state.failure)}',
+            );
           }
         },
         builder: (context, state) {
           final isLoading = state is LoginLoading;
-          
+
           return Scaffold(
             backgroundColor: MarketiColors.white,
             body: SafeArea(
@@ -141,14 +146,16 @@ class _LoginScreenState extends State<LoginScreen> {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           GestureDetector(
-                            onTap: () => Navigator.pop(context),
+                            onTap: () => Navigator.pushNamed(context,'/home_screen'),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                border: Border.all(color: MarketiColors.primaryBlue),
+                                border: Border.all(
+                                  color: MarketiColors.primaryBlue,
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -180,17 +187,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: MarketiColors.gray300),
+                            borderSide: BorderSide(
+                              color: MarketiColors.gray300,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: MarketiColors.primaryBlue),
+                            borderSide: BorderSide(
+                              color: MarketiColors.primaryBlue,
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(height: AppSize.paddingLarge),
                       TextFormField(
-                        validator: (value) => TValidator.validatePassword(value),
+                        validator: (value) =>
+                            TValidator.validatePassword(value),
                         controller: _passwordController,
                         focusNode: _passwordFocusNode,
                         obscureText: true,
@@ -206,11 +218,15 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: MarketiColors.gray300),
+                            borderSide: BorderSide(
+                              color: MarketiColors.gray300,
+                            ),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
-                            borderSide: BorderSide(color: MarketiColors.primaryBlue),
+                            borderSide: BorderSide(
+                              color: MarketiColors.primaryBlue,
+                            ),
                           ),
                         ),
                       ),
@@ -229,7 +245,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 activeColor: MarketiColors.primaryBlue,
                               ),
-                              Text('Remember Me', style: AppTextStyles.bodyMedium),
+                              Text(
+                                'Remember Me',
+                                style: AppTextStyles.bodyMedium,
+                              ),
                             ],
                           ),
                           TextButton(
@@ -248,15 +267,17 @@ class _LoginScreenState extends State<LoginScreen> {
                         width: double.infinity,
                         height: 50,
                         child: ElevatedButton(
-                          onPressed: isLoading ? null : () {
-                            if (formKey.currentState!.validate()) {
-                              final request = SigninRequest(
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text.trim(),
-                              );
-                              context.read<LoginCubit>().signIn(request);
-                            }
-                          },
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  if (formKey.currentState!.validate()) {
+                                    final request = SigninRequest(
+                                      email: _emailController.text.trim(),
+                                      password: _passwordController.text.trim(),
+                                    );
+                                    context.read<LoginCubit>().signIn(request);
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: MarketiColors.primaryBlue,
                             shape: RoundedRectangleBorder(
@@ -320,7 +341,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             const SizedBox(width: 11),
                             IconButton(
                               onPressed: () {},
-                              icon: Icon(FontAwesomeIcons.google, color: Colors.red),
+                              icon: Icon(
+                                FontAwesomeIcons.google,
+                                color: Colors.red,
+                              ),
                             ),
                             const SizedBox(width: 11),
                             IconButton(

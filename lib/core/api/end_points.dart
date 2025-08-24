@@ -11,14 +11,30 @@ class EndPoints {
   static String resetPassword = "auth/resetPassword";
   //! Home  ------------------------------------------------------
   static String products = "home/products";
+  static String productbycategory = "/home/products/category/smartphones?skip=0&limit=5";
+  static String productbybrand = "/home/products/brand/Essence?skip=0&limit=5";
   static String brands = "home/brands";
+  static String brandname = "home/brands/names";
+
   static String categories = "home/categories";
+  static String categorynames = "home/categories/names";
+
+//! Cart  ------------------------------------------------------
+
+  static String getcart = "user/getCart";
+  static String addcart = "user/addCart";
+  static String delcart = "user/deleteCart";
+
+//! FAv  ------------------------------------------------------
+static String getfav = "user/getFavorite";
+static String addfav = "user/addFavorite";
+static String delfav = "user/deleteFavorite";
 
 }
 
 class ApiKey {
   static String status = "status";
-  static String errorMessage = "ErrorMessage";
+  static String errorMessage = "errorMessage";
   static String email = "email";
   static String password = "password";
   static String authorization = "Authorization";
@@ -28,3 +44,4 @@ class StorageKeys {
   static String hasCompletedOnboarding = "hasCompletedOnboarding";
   static String token = "token";
 }
+
