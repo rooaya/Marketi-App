@@ -5,6 +5,7 @@ import 'package:marketiapp/core/helpers/shared_preferences.dart';
 import 'package:marketiapp/features/Favorites/data/models/repo/fav_repo.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/auth/presentation/view/VerificationCode/verify_code_phone.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,7 +36,6 @@ import 'package:provider/provider.dart';
 
 // Import Favorite Cubit and Repo
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -62,17 +62,16 @@ class MarketiApp extends StatelessWidget {
 
     // Create Cubits
     final HomeCubit homeCubit = HomeCubit(homeRepo: homeRepo);
-    final FavoriteCubit favoriteCubit = FavoriteCubit(favoriteRepo: favoriteRepo);
+    final FavoriteCubit favoriteCubit = FavoriteCubit(
+      favoriteRepo: favoriteRepo,
+    );
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => CartProvider()),
         ChangeNotifierProvider(create: (context) => FavoritesProvider()),
         // Provide HomeCubit at the app level
-        BlocProvider<HomeCubit>(
-          create: (context) => homeCubit,
-          lazy: false,
-        ),
+        BlocProvider<HomeCubit>(create: (context) => homeCubit, lazy: false),
         // Provide FavoriteCubit at the app level
         BlocProvider<FavoriteCubit>(
           create: (context) => favoriteCubit,
@@ -85,6 +84,8 @@ class MarketiApp extends StatelessWidget {
         theme: MarketiTheme.lightTheme,
         initialRoute: '/splash',
         routes: {
+       
+
           '/splash': (context) => const SplashScreen(),
           '/onboarding1': (context) => OnboardingPage1(
             onNextPressed: () =>

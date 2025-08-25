@@ -80,39 +80,48 @@ class HomeRepo {
   }
 
   // Get products by category
-  Future<Either<Failure, ProductsResponse>> getProductsByCategory(
-    String category, {
-    int skip = 0,
-    int limit = 10,
-  }) async {
-    try {
-      final response = await api.get(
-        EndPoints.productbycategory,
-      );
-      return Right(ProductsResponse.fromJson(response));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.errModel));
-    } catch (e) {
-      return Left(UnknownFailure(ErrorModel(e.toString())));
-    }
+Future<Either<Failure, ProductsResponse>> getProductsByCategory(
+  String category, {
+  int skip = 0,
+  int limit = 10,
+}) async {
+  try {
+    final response = await api.get(
+      EndPoints.products,
+      queryParameters: {
+        'category': category,
+        'skip': skip,
+        'limit': limit,
+      },
+    );
+    return Right(ProductsResponse.fromJson(response));
+  } on ServerException catch (e) {
+    return Left(ServerFailure(e.errModel));
+  } catch (e) {
+    return Left(UnknownFailure(ErrorModel(e.toString())));
   }
+}
 
-  // Get products by brand
-  Future<Either<Failure, ProductsResponse>> getProductsByBrand(
-    String brand, {
-    int skip = 0,
-    int limit = 10,
-  }) async {
-    try {
-      final response = await api.get(
-        EndPoints.productbybrand,
-      );
-      return Right(ProductsResponse.fromJson(response));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.errModel));
-    } catch (e) {
-      return Left(UnknownFailure(ErrorModel(e.toString())));
-    }
+Future<Either<Failure, ProductsResponse>> getProductsByBrand(
+  String brand, {
+  int skip = 0,
+  int limit = 10,
+}) async {
+  try {
+    final response = await api.get(
+      EndPoints.products,
+      queryParameters: {
+        'brand': brand,
+        'skip': skip,
+        'limit': limit,
+      },
+    );
+    return Right(ProductsResponse.fromJson(response));
+  } on ServerException catch (e) {
+    return Left(ServerFailure(e.errModel));
+  } catch (e) {
+    return Left(UnknownFailure(ErrorModel(e.toString())));
   }
+}
 
 }

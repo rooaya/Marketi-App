@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 
@@ -109,7 +110,9 @@ class CategoryProductScreen extends StatelessWidget {
                       child: Center(child: Text(state.failure.toString())),
                     );
                   } else if (state is HomeSuccess) {
-                    return _buildNormalContent(state.categories.list.cast<Category>());
+                    return _buildNormalContent(
+                      state.categories.list.cast<Category>(),
+                    );
                   } else {
                     return const Expanded(
                       child: Center(child: Text('No categories available')),
@@ -152,7 +155,11 @@ class CategoryProductScreen extends StatelessWidget {
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final category = categories[index];
-                return _buildCategoryCard(category.name, category.image);
+                return _buildCategoryCard(
+                  context,
+                  category.name,
+                  category.image,
+                );
               },
             ),
           ),
@@ -161,40 +168,55 @@ class CategoryProductScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryCard(String categoryName, String? imagePath) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (imagePath != null && imagePath.isNotEmpty)
-            Image.network(
-              imagePath,
-              width: 100,
-              height: 100,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => Container(
+  Widget _buildCategoryCard(
+    BuildContext context,
+    String categoryName,
+    String? imagePath,
+  ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                ProductByCategoryScreen(categoryName: categoryName),
+          ),
+        );
+      },
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (imagePath != null && imagePath.isNotEmpty)
+              Image.network(
+                imagePath,
+                width: 100,
+                height: 100,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  width: 60,
+                  height: 60,
+                  color: Colors.grey[200],
+                  child: const Icon(Icons.category),
+                ),
+              )
+            else
+              Container(
                 width: 60,
                 height: 60,
                 color: Colors.grey[200],
                 child: const Icon(Icons.category),
               ),
-            )
-          else
-            Container(
-              width: 60,
-              height: 60,
-              color: Colors.grey[200],
-              child: const Icon(Icons.category),
+            const SizedBox(height: 12),
+            Text(
+              categoryName,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
             ),
-          const SizedBox(height: 12),
-          Text(
-            categoryName,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

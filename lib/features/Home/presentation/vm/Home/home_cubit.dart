@@ -75,33 +75,66 @@ class HomeCubit extends Cubit<HomeState> {
     }
   }
 
-  // Load products by category
-  Future<void> getProductsByCategory(String categoryName) async {
+// lib/features/home/presentation/cubit/home_cubit.dart (Update these methods)
+// Load products by category with pagination
+Future<void> getProductsByCategory(String categoryName, {int skip = 0, int limit = 10}) async {
+  if (skip == 0) {
     emit(HomeProductsLoading());
-    try {
-      final result = await homeRepo.getProductsByCategory(categoryName);
-      result.fold(
-        (failure) => emit(HomeProductsFailure(failure)),
-        (products) => emit(HomeProductsSuccess(products)),
-      );
-    } catch (e) {
-      emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
-    }
   }
 
-  // Load products by brand
-  Future<void> getProductsByBrand(String brandName) async {
-    emit(HomeProductsLoading());
-    try {
-      final result = await homeRepo.getProductsByBrand(brandName);
-      result.fold(
-        (failure) => emit(HomeProductsFailure(failure)),
-        (products) => emit(HomeProductsSuccess(products)),
-      );
-    } catch (e) {
-      emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
-    }
+  try {
+    final result = await homeRepo.getProductsByCategory(categoryName, skip: skip, limit: limit);
+    result.fold(
+      (failure) => emit(HomeProductsFailure(failure)),
+      (products) {
+        if (state is HomeProductsSuccess) {
+          final currentState = state as HomeProductsSuccess;
+          final updatedProducts = ProductsResponse(
+            list: [...currentState.products.list, ...products.list],
+            total: products.total,
+            skip: skip,
+            limit: limit,
+          );
+          emit(HomeProductsSuccess(updatedProducts));
+        } else {
+          emit(HomeProductsSuccess(products));
+        }
+      },
+    );
+  } catch (e) {
+    emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
   }
+}
+
+// Load products by brand with pagination
+Future<void> getProductsByBrand(String brandName, {int skip = 0, int limit = 10}) async {
+  if (skip == 0) {
+    emit(HomeProductsLoading());
+  }
+
+  try {
+    final result = await homeRepo.getProductsByBrand(brandName, skip: skip, limit: limit);
+    result.fold(
+      (failure) => emit(HomeProductsFailure(failure)),
+      (products) {
+        if (state is HomeProductsSuccess) {
+          final currentState = state as HomeProductsSuccess;
+          final updatedProducts = ProductsResponse(
+            list: [...currentState.products.list, ...products.list],
+            total: products.total,
+            skip: skip,
+            limit: limit,
+          );
+          emit(HomeProductsSuccess(updatedProducts));
+        } else {
+          emit(HomeProductsSuccess(products));
+        }
+      },
+    );
+  } catch (e) {
+    emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
+  }
+}
 
   
   // Load only categories

@@ -1,6 +1,7 @@
 // lib/features/home/presentation/view/ProductScreens/brands_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/home/data/models/brand/brand_model.dart';
@@ -115,7 +116,15 @@ class BrandsScreen extends StatelessWidget {
                         child: Center(child: Text('No brands available')),
                       );
                     }
-                    return _buildBrandsGrid(state.brands.list);
+                    return _buildBrandsGrid(context, state.brands.list);
+                  } else if (state is HomeBrandsSuccess) {
+                    // Handle HomeBrandsSuccess state
+                    if (state.brands.list.isEmpty) {
+                      return const Expanded(
+                        child: Center(child: Text('No brands available')),
+                      );
+                    }
+                    return _buildBrandsGrid(context, state.brands.list);
                   } else {
                     // Initial state
                     return const Expanded(
@@ -131,7 +140,7 @@ class BrandsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBrandsGrid(List<Brand> brands) {
+  Widget _buildBrandsGrid(BuildContext context, List<Brand> brands) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +168,7 @@ class BrandsScreen extends StatelessWidget {
               itemCount: brands.length,
               itemBuilder: (context, index) {
                 final brand = brands[index];
-                return _buildBrandCard(brand);
+                return _buildBrandCard(context, brand);
               },
             ),
           ),
@@ -168,38 +177,48 @@ class BrandsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBrandCard(Brand brand) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Use emoji or fallback to icon
-          if (brand.emoji != null && brand.emoji!.isNotEmpty)
-            Text(
-              brand.emoji!,
-              style: const TextStyle(fontSize: 40),
-            )
-          else
-            const Icon(Icons.business, size: 40, color: Colors.grey),
-          const SizedBox(height: 12),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Text(
-              brand.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+  Widget _buildBrandCard(BuildContext context, Brand brand) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductByBrandScreen(brandName: brand.name),
           ),
-        ],
+        );
+      },
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Use emoji or fallback to icon
+            if (brand.emoji != null && brand.emoji!.isNotEmpty)
+              Text(
+                brand.emoji!,
+                style: const TextStyle(fontSize: 40),
+              )
+            else
+              const Icon(Icons.business, size: 40, color: Colors.grey),
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                brand.name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
