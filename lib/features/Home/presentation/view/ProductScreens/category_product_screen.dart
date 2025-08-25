@@ -13,10 +13,10 @@ class CategoryProductScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
 
-    // Load categories when screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeCubit.getCategories();
-    });
+    // // Load categories when screen is built
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   homeCubit.getCategories();
+    // });
 
     return Scaffold(
       backgroundColor: Colors.white,

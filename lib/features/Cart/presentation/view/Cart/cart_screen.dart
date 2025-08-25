@@ -22,9 +22,9 @@ class CartScreen extends StatelessWidget {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
 
     // Load home data when screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeCubit.getHomeData();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   homeCubit.getHomeData();
+    // });
 
     return Scaffold(
       backgroundColor: Colors.white,

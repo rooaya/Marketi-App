@@ -11,10 +11,10 @@ class PopularProductScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
 
-    // Load products when screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeCubit.getProducts();
-    });
+    // // Load products when screen is built
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   homeCubit.getProducts();
+    // });
 
     return Scaffold(
       backgroundColor: Colors.white,

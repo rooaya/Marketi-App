@@ -20,7 +20,7 @@ class HomeCubit extends Cubit<HomeState> {
   HomeCubit({required this.homeRepo}) : super(HomeInitial());
 
   // Load all home data (categories, brands, category names, products)
-  Future<void> getHomeData() async {
+/*  Future<void> getHomeData() async {
     emit(HomeLoading());
     
     try {
@@ -163,7 +163,7 @@ Future<void> getProductsByBrand(String brandName, {int skip = 0, int limit = 10}
     } catch (e) {
       emit(HomeBrandsFailure(UnknownFailure(ErrorModel(e.toString()))));
     }
-  }
+  }*/
 
   // Load only category names
   Future<void> getCategoryNames() async {

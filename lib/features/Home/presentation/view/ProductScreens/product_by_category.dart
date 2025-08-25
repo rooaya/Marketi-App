@@ -23,43 +23,43 @@ class _ProductByCategoryScreenState extends State<ProductByCategoryScreen> {
   final int _limit = 10;
   bool _isLoadingMore = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadInitialProducts();
-    _scrollController.addListener(_onScroll);
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _loadInitialProducts();
+  //   _scrollController.addListener(_onScroll);
+  // }
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _scrollController.dispose();
+  //   super.dispose();
+  // }
 
-  void _loadInitialProducts() {
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
-    homeCubit.getProductsByCategory(widget.categoryName);
-  }
+  // // void _loadInitialProducts() {
+  // //   final homeCubit = BlocProvider.of<HomeCubit>(context);
+  // //   homeCubit.getProductsByCategory(widget.categoryName);
+  // // }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _loadMoreProducts();
-    }
-  }
+  // void _onScroll() {
+  //   if (_scrollController.position.pixels ==
+  //       _scrollController.position.maxScrollExtent) {
+  //     _loadMoreProducts();
+  //   }
+  // }
 
-  void _loadMoreProducts() {
-    if (_isLoadingMore) return;
+  // void _loadMoreProducts() {
+  //   if (_isLoadingMore) return;
     
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
-    if (homeCubit.state is! HomeProductsLoading) {
-      _isLoadingMore = true;
-      _currentPage++;
-      // Note: You might need to update your HomeCubit to support pagination
-      // For now, we'll just load the initial products again
-      homeCubit.getProductsByCategory(widget.categoryName);
-    }
-  }
+  //   final homeCubit = BlocProvider.of<HomeCubit>(context);
+  //   if (homeCubit.state is! HomeProductsLoading) {
+  //     _isLoadingMore = true;
+  //     _currentPage++;
+  //     // Note: You might need to update your HomeCubit to support pagination
+  //     // For now, we'll just load the initial products again
+  //     homeCubit.getProductsByCategory(widget.categoryName);
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {

@@ -22,9 +22,9 @@ class HomeScreen extends StatelessWidget {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
 
     // Load home data when screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeCubit.getHomeData();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   homeCubit.getHomeData();
+    // });
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -80,16 +80,28 @@ class HomeScreen extends StatelessWidget {
               // Home content
               BlocBuilder<HomeCubit, HomeState>(
                 builder: (context, state) {
-                  if (state is HomeLoading) {
+                  if (state is HomeCategoryNamesLoading) {
                     return const Expanded(
                       child: Center(child: CircularProgressIndicator()),
                     );
                   } else if (state is HomeFailure) {
                     return Expanded(
-                      child: Center(child: Text(state.failure.errorModel.message??"Error...!")),
+                      child: Center(
+                        child: Text(
+                          state.failure.errorModel.message ?? "Error...!",
+                        ),
+                      ),
                     );
-                  } else if (state is HomeSuccess) {
-                    return _buildNormalContent(context, state);
+                  } else if (state is HomeCategoryNamesSuccess) {
+                    // return _buildNormalContent(context, state);
+                    return ListView.builder(
+                      itemBuilder: (context, index) {
+                        return Text(state.categoryNames.list[index].name);
+                      },
+                      itemCount: state.categoryNames.list.length,
+                    );
+                  } else if (state is HomeCategoriesFailure) {
+                    return Text("error");
                   } else {
                     return const Expanded(
                       child: Center(child: CircularProgressIndicator()),
@@ -181,7 +193,11 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, String routeName) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title,
+    String routeName,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -329,10 +345,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                emoji,
-                style: const TextStyle(fontSize: 40),
-              ),
+              Text(emoji, style: const TextStyle(fontSize: 40)),
               const SizedBox(height: 8),
               Text(
                 brandName,

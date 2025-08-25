@@ -13,10 +13,10 @@ class BrandsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final homeCubit = BlocProvider.of<HomeCubit>(context);
 
-    // Load brands when screen is built
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      homeCubit.getBrands();
-    });
+    // // Load brands when screen is built
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   homeCubit.getBrands();
+    // });
 
     return Scaffold(
       backgroundColor: Colors.white,
