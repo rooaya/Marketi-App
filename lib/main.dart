@@ -62,132 +62,117 @@ class MarketiApp extends StatelessWidget {
 
     // Create Cubits
     final HomeCubit homeCubit = HomeCubit(homeRepo: homeRepo);
-    final FavoriteCubit favoriteCubit = FavoriteCubit(
-      favoriteRepo: favoriteRepo,
-    );
+    final FavoriteCubit favoriteCubit = FavoriteCubit(favoriteRepo: favoriteRepo);
 
     return MultiProvider(
       providers: [
-        // ChangeNotifierProvider(create: (context) => CartProvider()),
-        // ChangeNotifierProvider(create: (context) => FavoritesProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()),
         // Provide HomeCubit at the app level
-        BlocProvider<HomeCubit>(create: (context) => homeCubit, lazy: false),
+        BlocProvider<HomeCubit>(
+          create: (context) => homeCubit
+            ..getCategories()
+            ..getBrands(),
+        ),
         // Provide FavoriteCubit at the app level
-        // BlocProvider<FavoriteCubit>(
-        //   create: (context) => favoriteCubit,
-        //   lazy: false,
-        // ),
+        // BlocProvider<FavoriteCubit>(create: (context) => favoriteCubit, lazy: false),
       ],
       child: MaterialApp(
         title: 'Marketi App',
         debugShowCheckedModeBanner: false,
         theme: MarketiTheme.lightTheme,
-        // initialRoute: '/splash',
-        home: Scaffold(
-          body: BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, state) {
-              if (state is HomeCategoryNamesLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is HomeFailure) {
-                return Center(
-                  child: Text(state.failure.errorModel.message ?? "Error...!"),
-                );
-              } else if (state is HomeCategoryNamesSuccess) {
-                // return _buildNormalContent(context, state);
-                return ListView.builder(
-                  itemBuilder: (context, index) {
-                    return Text(state.categoryNames.list[index].name);
-                  },
-                  itemCount: state.categoryNames.list.length,
-                );
-              } else if (state is HomeCategoriesFailure) {
-                return Text("error");
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            },
-          ),
-        ),
-        // routes: {
-
-        //   '/splash': (context) => const SplashScreen(),
-        //   '/onboarding1': (context) => OnboardingPage1(
-        //     onNextPressed: () =>
-        //         Navigator.pushReplacementNamed(context, '/onboarding2'),
-        //     onSkipPressed: () =>
-        //         Navigator.pushReplacementNamed(context, '/login'),
+        initialRoute: '/splash',
+        // home: Scaffold(
+        //   body: BlocBuilder<HomeCubit, HomeState>(
+        //     builder: (context, state) {
+        //       if (state is HomeCategoryNamesLoading) {
+        //         return const Center(child: CircularProgressIndicator());
+        //       } else if (state is HomeFailure) {
+        //         return Center(
+        //           child: Text(state.failure.errorModel.message ?? "Error...!"),
+        //         );
+        //       } else if (state is HomeCategoryNamesSuccess) {
+        //         // return _buildNormalContent(context, state);
+        //         return ListView.builder(
+        //           itemBuilder: (context, index) {
+        //             return Text(state.categoryNames.list[index].name);
+        //           },
+        //           itemCount: state.categoryNames.list.length,
+        //         );
+        //       } else if (state is HomeCategoriesFailure) {
+        //         return Text("error");
+        //       } else {
+        //         return const Center(child: CircularProgressIndicator());
+        //       }
+        //     },
         //   ),
-        //   '/onboarding2': (context) => OnboardingPage2(
-        //     onNextPressed: () =>
-        //         Navigator.pushReplacementNamed(context, '/onboarding3'),
-        //     onBackPressed: () => Navigator.pop(context),
-        //     onSkipPressed: () =>
-        //         Navigator.pushReplacementNamed(context, '/login'),
-        //   ),
-        //   '/onboarding3': (context) => OnboardingPage3(
-        //     onGetStartedPressed: () =>
-        //         Navigator.pushReplacementNamed(context, '/login'),
-        //     onBackPressed: () => Navigator.pop(context),
-        //   ),
-        //   '/sign-up': (context) => const SignUpScreen(),
-        //   '/login': (context) {
-        //     final args =
-        //         ModalRoute.of(context)?.settings.arguments
-        //             as Map<String, dynamic>?;
-        //     return LoginScreen(
-        //       onLoginSuccess: () =>
-        //           Navigator.pushReplacementNamed(context, '/home_screen'),
-        //       initialEmail: args?['email']?.toString(),
-        //     );
-        //   },
-        //   '/forgot-password-phone': (context) =>
-        //       const ForgotPasswordPhoneScreen(),
-        //   '/create-password': (context) {
-        //     final args =
-        //         ModalRoute.of(context)?.settings.arguments
-        //             as Map<String, dynamic>?;
-        //     return CreateNewPasswordScreen(
-        //       email: args?['email'] as String? ?? '',
-        //     );
-        //   },
-        //   '/congrates-page': (context) => const CongratulationsScreen(),
-        //   '/home_screen': (context) => const HomeScreen(),
-        //   '/favorites': (context) => const FavoritesScreen(),
-        //   '/profile': (context) => const ProfileScreen(),
-        //   '/brands': (context) => const BrandsScreen(),
-        //   '/categories': (context) => const CategoryProductScreen(),
-        //   '/popular-products': (context) => const PopularProductScreen(),
-        //   '/product-details': (context) {
-        //     final args =
-        //         ModalRoute.of(context)?.settings.arguments
-        //             as Map<String, dynamic>?;
-        //     return ProductDetailsScreen(
-        //       id: args?['id'] as String? ?? '',
-        //       name: args?['name'] as String? ?? '',
-        //       imageUrl: args?['imageUrl'] as String? ?? '',
-        //       price: args?['price'] as double? ?? 0.0,
-        //       rating: args?['rating'] as double? ?? 0.0,
-        //       description: args?['description'] as String? ?? '',
-        //     );
-        //   },
-        // },
-        // onGenerateRoute: (settings) {
-        //   switch (settings.name) {
-        //     case '/verification-email':
-        //       final email = settings.arguments as String?;
-        //       return MaterialPageRoute(
-        //         builder: (context) => VerificationCodeScreen(),
-        //       );
-        //     case '/create-password':
-        //       final args = settings.arguments as Map<String, dynamic>?;
-        //       return MaterialPageRoute(
-        //         builder: (context) => CreateNewPasswordScreen(
-        //           email: args?['email'] as String? ?? '',
-        //         ),
-        //       );
-        //   }
-        //   return null;
-        // },
+        // ),
+        routes: {
+          '/splash': (context) => const SplashScreen(),
+          '/onboarding1': (context) => OnboardingPage1(
+                onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding2'),
+                onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              ),
+          '/onboarding2': (context) => OnboardingPage2(
+                onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding3'),
+                onBackPressed: () => Navigator.pop(context),
+                onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              ),
+          '/onboarding3': (context) => OnboardingPage3(
+                onGetStartedPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onBackPressed: () => Navigator.pop(context),
+              ),
+          '/sign-up': (context) => const SignUpScreen(),
+          '/login': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return LoginScreen(
+              onLoginSuccess: () => Navigator.pushReplacementNamed(context, '/home_screen'),
+              initialEmail: args?['email']?.toString(),
+            );
+          },
+          '/forgot-password-phone': (context) => const ForgotPasswordPhoneScreen(),
+          '/create-password': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return CreateNewPasswordScreen(
+              email: args?['email'] as String? ?? '',
+            );
+          },
+          '/congrates-page': (context) => const CongratulationsScreen(),
+          '/home_screen': (context) => const HomeScreen(),
+          '/favorites': (context) => const FavoritesScreen(),
+          '/profile': (context) => const ProfileScreen(),
+          '/brands': (context) => const BrandsScreen(),
+          '/categories': (context) => const CategoryProductScreen(),
+          '/popular-products': (context) => const PopularProductScreen(),
+          '/product-details': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return ProductDetailsScreen(
+              id: args?['id'] as String? ?? '',
+              name: args?['name'] as String? ?? '',
+              imageUrl: args?['imageUrl'] as String? ?? '',
+              price: args?['price'] as double? ?? 0.0,
+              rating: args?['rating'] as double? ?? 0.0,
+              description: args?['description'] as String? ?? '',
+            );
+          },
+        },
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/verification-email':
+              final email = settings.arguments as String?;
+              return MaterialPageRoute(
+                builder: (context) => VerificationCodeScreen(),
+              );
+            case '/create-password':
+              final args = settings.arguments as Map<String, dynamic>?;
+              return MaterialPageRoute(
+                builder: (context) => CreateNewPasswordScreen(
+                  email: args?['email'] as String? ?? '',
+                ),
+              );
+          }
+          return null;
+        },
       ),
     );
   }

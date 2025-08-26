@@ -11,18 +11,17 @@ import 'package:marketiapp/features/home/data/models/categories/categories_respo
 import 'package:marketiapp/features/home/data/models/categories/category_names_response.dart';
 import 'package:marketiapp/features/home/data/models/brand/brands_response.dart';
 
-
 part 'home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   final HomeRepo homeRepo;
-  
+
   HomeCubit({required this.homeRepo}) : super(HomeInitial());
 
   // Load all home data (categories, brands, category names, products)
-/*  Future<void> getHomeData() async {
+  Future<void> getHomeData() async {
     emit(HomeLoading());
-    
+
     try {
       final categoriesResult = await homeRepo.getCategories();
       final brandsResult = await homeRepo.getBrands();
@@ -77,93 +76,84 @@ class HomeCubit extends Cubit<HomeState> {
 
 // lib/features/home/presentation/cubit/home_cubit.dart (Update these methods)
 // Load products by category with pagination
-Future<void> getProductsByCategory(String categoryName, {int skip = 0, int limit = 10}) async {
-  if (skip == 0) {
-    emit(HomeProductsLoading());
-  }
+  Future<void> getProductsByCategory(String categoryName, {int skip = 0, int limit = 10}) async {
+    if (skip == 0) {
+      emit(HomeProductsLoading());
+    }
 
-  try {
-    final result = await homeRepo.getProductsByCategory(categoryName, skip: skip, limit: limit);
-    result.fold(
-      (failure) => emit(HomeProductsFailure(failure)),
-      (products) {
-        if (state is HomeProductsSuccess) {
-          final currentState = state as HomeProductsSuccess;
-          final updatedProducts = ProductsResponse(
-            list: [...currentState.products.list, ...products.list],
-            total: products.total,
-            skip: skip,
-            limit: limit,
-          );
-          emit(HomeProductsSuccess(updatedProducts));
-        } else {
-          emit(HomeProductsSuccess(products));
-        }
-      },
-    );
-  } catch (e) {
-    emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
+    try {
+      final result = await homeRepo.getProductsByCategory(categoryName, skip: skip, limit: limit);
+      result.fold(
+        (failure) => emit(HomeProductsFailure(failure)),
+        (products) {
+          if (state is HomeProductsSuccess) {
+            final currentState = state as HomeProductsSuccess;
+            final updatedProducts = ProductsResponse(
+              list: [...currentState.products.list, ...products.list],
+              total: products.total,
+              skip: skip,
+              limit: limit,
+            );
+            emit(HomeProductsSuccess(updatedProducts));
+          } else {
+            emit(HomeProductsSuccess(products));
+          }
+        },
+      );
+    } catch (e) {
+      emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
+    }
   }
-}
 
 // Load products by brand with pagination
-Future<void> getProductsByBrand(String brandName, {int skip = 0, int limit = 10}) async {
-  if (skip == 0) {
-    emit(HomeProductsLoading());
+  Future<void> getProductsByBrand(String brandName, {int skip = 0, int limit = 10}) async {
+    if (skip == 0) {
+      emit(HomeProductsLoading());
+    }
+
+    try {
+      final result = await homeRepo.getProductsByBrand(brandName, skip: skip, limit: limit);
+      result.fold(
+        (failure) => emit(HomeProductsFailure(failure)),
+        (products) {
+          if (state is HomeProductsSuccess) {
+            final currentState = state as HomeProductsSuccess;
+            final updatedProducts = ProductsResponse(
+              list: [...currentState.products.list, ...products.list],
+              total: products.total,
+              skip: skip,
+              limit: limit,
+            );
+            emit(HomeProductsSuccess(updatedProducts));
+          } else {
+            emit(HomeProductsSuccess(products));
+          }
+        },
+      );
+    } catch (e) {
+      emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
+    }
   }
 
-  try {
-    final result = await homeRepo.getProductsByBrand(brandName, skip: skip, limit: limit);
-    result.fold(
-      (failure) => emit(HomeProductsFailure(failure)),
-      (products) {
-        if (state is HomeProductsSuccess) {
-          final currentState = state as HomeProductsSuccess;
-          final updatedProducts = ProductsResponse(
-            list: [...currentState.products.list, ...products.list],
-            total: products.total,
-            skip: skip,
-            limit: limit,
-          );
-          emit(HomeProductsSuccess(updatedProducts));
-        } else {
-          emit(HomeProductsSuccess(products));
-        }
-      },
-    );
-  } catch (e) {
-    emit(HomeProductsFailure(UnknownFailure(ErrorModel(e.toString()))));
-  }
-}
-
-  
   // Load only categories
   Future<void> getCategories() async {
     emit(HomeCategoriesLoading());
-    try {
-      final result = await homeRepo.getCategories();
-      result.fold(
-        (failure) => emit(HomeCategoriesFailure(failure)),
-        (categories) => emit(HomeCategoriesSuccess(categories)),
-      );
-    } catch (e) {
-      emit(HomeCategoriesFailure(UnknownFailure(ErrorModel(e.toString()))));
-    }
+    final result = await homeRepo.getCategories();
+    result.fold(
+      (failure) => emit(HomeCategoriesFailure(failure)),
+      (categories) => emit(HomeCategoriesSuccess(categories)),
+    );
   }
 
   // Load only brands
   Future<void> getBrands() async {
     emit(HomeBrandsLoading());
-    try {
-      final result = await homeRepo.getBrands();
-      result.fold(
-        (failure) => emit(HomeBrandsFailure(failure)),
-        (brands) => emit(HomeBrandsSuccess(brands)),
-      );
-    } catch (e) {
-      emit(HomeBrandsFailure(UnknownFailure(ErrorModel(e.toString()))));
-    }
-  }*/
+    final result = await homeRepo.getBrands();
+    result.fold(
+      (failure) => emit(HomeBrandsFailure(failure)),
+      (brands) => emit(HomeBrandsSuccess(brands)),
+    );
+  }
 
   // Load only category names
   Future<void> getCategoryNames() async {

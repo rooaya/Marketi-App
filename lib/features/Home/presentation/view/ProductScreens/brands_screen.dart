@@ -116,7 +116,8 @@ class BrandsScreen extends StatelessWidget {
                         child: Center(child: Text('No brands available')),
                       );
                     }
-                    return _buildBrandsGrid(context, state.brands.list);
+                    return Text("_buildBrandsGrid");
+                    // _buildBrandsGrid(context, state.brands.list);
                   } else if (state is HomeBrandsSuccess) {
                     // Handle HomeBrandsSuccess state
                     if (state.brands.list.isEmpty) {
@@ -124,7 +125,8 @@ class BrandsScreen extends StatelessWidget {
                         child: Center(child: Text('No brands available')),
                       );
                     }
-                    return _buildBrandsGrid(context, state.brands.list);
+                    return Text("_buildBrandsGrid");
+                    //  _buildBrandsGrid(context, state.brands.list);
                   } else {
                     // Initial state
                     return const Expanded(
@@ -140,86 +142,86 @@ class BrandsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBrandsGrid(BuildContext context, List<Brand> brands) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // All Brands title
-          const Text(
-            'All Brands',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 16),
+  // Widget _buildBrandsGrid(BuildContext context, List<Brand> brands) {
+  //   return Expanded(
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         // All Brands title
+  //         const Text(
+  //           'All Brands',
+  //           style: TextStyle(
+  //             fontSize: 20,
+  //             fontWeight: FontWeight.bold,
+  //             color: Colors.black,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 16),
 
-          // Brands grid
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 1.0,
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-              ),
-              itemCount: brands.length,
-              itemBuilder: (context, index) {
-                final brand = brands[index];
-                return _buildBrandCard(context, brand);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  //         // Brands grid
+  //         Expanded(
+  //           child: GridView.builder(
+  //             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+  //               crossAxisCount: 2,
+  //               childAspectRatio: 1.0,
+  //               mainAxisSpacing: 16,
+  //               crossAxisSpacing: 16,
+  //             ),
+  //             itemCount: brands.length,
+  //             itemBuilder: (context, index) {
+  //               final brand = brands[index];
+  //               return _buildBrandCard(context, brand);
+  //             },
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _buildBrandCard(BuildContext context, Brand brand) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductByBrandScreen(brandName: brand.name),
-          ),
-        );
-      },
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Use emoji or fallback to icon
-            if (brand.emoji != null && brand.emoji!.isNotEmpty)
-              Text(
-                brand.emoji!,
-                style: const TextStyle(fontSize: 40),
-              )
-            else
-              const Icon(Icons.business, size: 40, color: Colors.grey),
-            const SizedBox(height: 12),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                brand.name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _buildBrandCard(BuildContext context, Brand brand) {
+  //   return GestureDetector(
+  //     onTap: () {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) => ProductByBrandScreen(brandName: brand.name),
+  //         ),
+  //       );
+  //     },
+  //     child: Card(
+  //       elevation: 2,
+  //       shape: RoundedRectangleBorder(
+  //         borderRadius: BorderRadius.circular(12),
+  //       ),
+  //       child: Column(
+  //         mainAxisAlignment: MainAxisAlignment.center,
+  //         children: [
+  //           // Use emoji or fallback to icon
+  //           if (brand.emoji.isNotEmpty)
+  //             Text(
+  //               brand.emoji,
+  //               style: const TextStyle(fontSize: 40),
+  //             )
+  //           else
+  //             const Icon(Icons.business, size: 40, color: Colors.grey),
+  //           const SizedBox(height: 12),
+  //           Padding(
+  //             padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  //             child: Text(
+  //               brand.name,
+  //               style: const TextStyle(
+  //                 fontSize: 16,
+  //                 fontWeight: FontWeight.bold,
+  //               ),
+  //               textAlign: TextAlign.center,
+  //               maxLines: 2,
+  //               overflow: TextOverflow.ellipsis,
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }
