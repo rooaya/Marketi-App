@@ -30,86 +30,189 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       bottomNavigationBar: _buildBottomNavigationBar(context),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // AppBar
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Welcome to Marketi',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // AppBar
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        'Welcome to Marketi',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.person_2_rounded, size: 30),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "What are you looking for?",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  filled: true,
-                  fillColor: const Color.fromARGB(255, 255, 253, 253),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Home content
-              BlocBuilder<HomeCubit, HomeState>(
-                builder: (context, state) {
-                  if (state is HomeCategoryNamesLoading) {
-                    return const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (state is HomeFailure) {
-                    return Expanded(
-                      child: Center(
-                        child: Text(
-                          state.failure.errorModel.message ?? "Error...!",
-                        ),
-                      ),
-                    );
-                  } else if (state is HomeCategoryNamesSuccess) {
-                    // return _buildNormalContent(context, state);
-                    return ListView.builder(
-                      itemBuilder: (context, index) {
-                        return Text(state.categoryNames.list[index].name);
+                    IconButton(
+                      icon: const Icon(Icons.person_2_rounded, size: 30),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
                       },
-                      itemCount: state.categoryNames.list.length,
-                    );
-                  } else if (state is HomeCategoriesFailure) {
-                    return Text("error");
-                  } else {
-                    return const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                },
-              ),
-            ],
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Search bar
+                TextField(
+                  decoration: InputDecoration(
+                    hintText: "What are you looking for?",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    filled: true,
+                    fillColor: const Color.fromARGB(255, 255, 253, 253),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                //! --------------------------------------------------------
+                Column(
+                  children: [
+                    // Category Section
+                    _buildSectionHeader(context, 'Category', 'category_product_screen'),
+                    const SizedBox(height: 8),
+                    BlocBuilder<HomeCubit, HomeState>(
+                      buildWhen: (previous, current) => current is HomeCategoriesLoading || current is HomeCategoriesSuccess || current is HomeCategoriesFailure,
+                      builder: (context, state) {
+                        if (state is HomeCategoriesLoading) {
+                          return Center(child: Text("HomeCategoriesLoading.....!"));
+                        } else if (state is HomeCategoriesFailure) {
+                          return Center(child: Text("HomeCategoriesFailure.....!"));
+                        } else if (state is HomeCategoriesSuccess) {
+                          return SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: state.categories.list.length,
+                              itemBuilder: (context, index) => _buildCategoryCard(state.categories.list[index].name, state.categories.list[index].image),
+                            ),
+                          );
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    // GridView.count(
+                    //   shrinkWrap: true,
+                    //   physics: const NeverScrollableScrollPhysics(),
+                    //   crossAxisCount: 3,
+                    //   childAspectRatio: 0.8,
+                    //   children: state.categories.list.take(6).map((category) {
+                    //     return _buildCategoryCard(category.name, category.image);
+                    //   }).toList(),
+                    // ),
+                    const SizedBox(height: 24),
+
+                    // Brands Section
+                    _buildSectionHeader(context, 'Brands', 'brands_screen'),
+                    const SizedBox(height: 8),
+                    BlocBuilder<HomeCubit, HomeState>(
+                      buildWhen: (previous, current) => current is HomeBrandsLoading || current is HomeBrandsSuccess || current is HomeBrandsFailure,
+                      builder: (context, state) {
+                        if (state is HomeBrandsLoading) {
+                          return Center(child: Text("HomeCategoriesLoading.....!"));
+                        } else if (state is HomeBrandsFailure) {
+                          return Center(child: Text("HomeCategoriesFailure.....!"));
+                        } else if (state is HomeBrandsSuccess) {
+                          return SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: state.brands.list.length,
+                                itemBuilder: (context, index) => _buildBrandCard(
+                                      state.brands.list[index].name,
+                                      state.brands.list[index].emoji,
+                                    )
+                                // _buildCategoryCard(state.brands.list[index].name, state.categories.list[index].image),
+                                ),
+                          );
+                        } else {
+                          return SizedBox.shrink();
+                        }
+                      },
+                    ),
+                    // _buildHorizontalProductList(
+                    //   state.brands.list.take(3).map((brand) {
+                    //     return _buildBrandCard(brand.name, brand.emoji);
+                    //   }).toList(),
+                    // ),
+                    const SizedBox(height: 16),
+                    // _buildNormalContent(context, state),
+                  ],
+                ),
+                // Home content
+                // BlocBuilder<HomeCubit, HomeState>(
+                //   builder: (context, state) {
+                //     if (state is HomeCategoryNamesLoading) {
+                //       return const Expanded(
+                //         child: Center(child: CircularProgressIndicator()),
+                //       );
+                //     } else if (state is HomeFailure) {
+                //       return Expanded(
+                //         child: Center(
+                //           child: Text(
+                //             state.failure.errorModel.message ?? "Error...!",
+                //           ),
+                //         ),
+                //       );
+                //     } else if (state is HomeCategoryNamesSuccess) {
+                //       return Column(
+                //         children: [
+                //           // Category Section
+                //           _buildSectionHeader(context, 'Category', 'category_product_screen'),
+                //           const SizedBox(height: 8),
+                //           GridView.count(
+                //             shrinkWrap: true,
+                //             physics: const NeverScrollableScrollPhysics(),
+                //             crossAxisCount: 3,
+                //             childAspectRatio: 0.8,
+                //             children: state.categories.list.take(6).map((category) {
+                //               return _buildCategoryCard(category.name, category.image);
+                //             }).toList(),
+                //           ),
+                //           const SizedBox(height: 24),
+
+                //           // Brands Section
+                //           _buildSectionHeader(context, 'Brands', 'brands_screen'),
+                //           const SizedBox(height: 8),
+                //           _buildHorizontalProductList(
+                //             state.brands.list.take(3).map((brand) {
+                //               return _buildBrandCard(brand.name, brand.emoji);
+                //             }).toList(),
+                //           ),
+                //           const SizedBox(height: 16),
+                //           // _buildNormalContent(context, state),
+                //         ],
+                //       );
+                //       // return ListView.builder(
+                //       //   itemBuilder: (context, index) {
+                //       //     return Text(state.categoryNames.list[index].name);
+                //       //   },
+                //       //   itemCount: state.categoryNames.list.length,
+                //       // );
+                //     } else if (state is HomeCategoriesFailure) {
+                //       return Text("error");
+                //     } else {
+                //       return const Expanded(
+                //         child: Center(child: CircularProgressIndicator()),
+                //       );
+                //     }
+                //   },
+                // ),
+              ],
+            ),
           ),
         ),
       ),
@@ -245,8 +348,7 @@ class HomeScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         itemCount: items.length,
         separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) =>
-            SizedBox(width: 150, child: items[index]),
+        itemBuilder: (context, index) => SizedBox(width: 150, child: items[index]),
       ),
     );
   }
@@ -336,7 +438,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildBrandCard(String brandName, String emoji) {
     return SizedBox(
-      width: 120,
+      // width: 120,
       child: Card(
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -345,13 +447,13 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 40)),
-              const SizedBox(height: 8),
+              Text(emoji, style: const TextStyle(fontSize: 24)),
+              // const SizedBox(height: 8),
               Text(
                 brandName,
                 style: const TextStyle(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],

@@ -1,7 +1,7 @@
 ////! baseUrl
 class EndPoints {
-
-  static String baseUrl = "https://marketi-app.onrender.com/api/v1/";
+  static String baseUrl = "https://supermarket-dan1.onrender.com/api/v1/";
+  //  "https://marketi-app.onrender.com/api/v1/";
   //! Auth  ------------------------------------------------------
   static String signIn = "auth/signIn";
   static String signUp = "auth/signUp";
@@ -26,10 +26,9 @@ class EndPoints {
   static String delcart = "user/deleteCart";
 
 //! FAv  ------------------------------------------------------
-static String getfav = "user/getFavorite";
-static String addfav = "user/addFavorite";
-static String delfav = "user/deleteFavorite";
-
+  static String getfav = "user/getFavorite";
+  static String addfav = "user/addFavorite";
+  static String delfav = "user/deleteFavorite";
 }
 
 class ApiKey {
@@ -44,4 +43,3 @@ class StorageKeys {
   static String hasCompletedOnboarding = "hasCompletedOnboarding";
   static String token = "token";
 }
-
