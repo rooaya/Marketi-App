@@ -179,7 +179,7 @@ class HomeCubit extends Cubit<HomeState> {
     final result = await homeRepo.getCategories();
     result.fold(
       (failure) => emit(HomeCategoriesFailure(failure)),
-      (categories) => emit(HomeCategoriesSuccess(categories as CategoriesResponse)),
+      (categories) => emit(HomeCategoriesSuccess(categories)),
     );
   }
 
@@ -189,7 +189,7 @@ class HomeCubit extends Cubit<HomeState> {
     final result = await homeRepo.getBrands();
     result.fold(
       (failure) => emit(HomeBrandsFailure(failure)),
-      (brands) => emit(HomeBrandsSuccess(brands as BrandsResponse)),
+      (brands) => emit(HomeBrandsSuccess(brands)),
     );
   }
 
@@ -200,7 +200,7 @@ class HomeCubit extends Cubit<HomeState> {
       final result = await homeRepo.getCategoryNames();
       result.fold(
         (failure) => emit(HomeCategoryNamesFailure(failure)),
-        (categoryNames) => emit(HomeCategoryNamesSuccess(categoryNames as CategoryNamesResponse)),
+        (categoryNames) => emit(HomeCategoryNamesSuccess(categoryNames)),
       );
     } catch (e) {
       emit(HomeCategoryNamesFailure(UnknownFailure(ErrorModel(e.toString()))));

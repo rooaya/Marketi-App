@@ -37,8 +37,6 @@ import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize shared preferences
   await CacheHelper.init();
 
   runApp(MarketiApp());
@@ -49,32 +47,19 @@ class MarketiApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Create Dio instance
     final Dio dio = Dio();
-
-    // Create ApiConsumer with JWT interceptor
     final ApiConsumer apiConsumer = DioConsumer(dio: dio);
-
-    // Create Repos
     final HomeRepo homeRepo = HomeRepo(api: apiConsumer);
     final FavoriteRepo favoriteRepo = FavoriteRepo(api: apiConsumer);
-
-    // Create Cubits
     final HomeCubit homeCubit = HomeCubit(homeRepo: homeRepo);
     final FavoriteCubit favoriteCubit = FavoriteCubit(favoriteRepo: favoriteRepo);
 
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => FavoritesProvider()),
-        // Provide HomeCubit at the app level
-        BlocProvider<HomeCubit>(
-          create: (context) => homeCubit,
-        ),
-        // Provide FavoriteCubit at the app level
-        BlocProvider<FavoriteCubit>(
-          create: (context) => favoriteCubit,
-        ),
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()), // Add this
+        BlocProvider<HomeCubit>(create: (context) => homeCubit),
+        BlocProvider<FavoriteCubit>(create: (context) => favoriteCubit),
       ],
       child: MaterialApp(
         title: 'Marketi App',
