@@ -1,4 +1,3 @@
-// lib/features/home/presentation/cubit/home_state.dart
 part of 'home_cubit.dart';
 
 @immutable

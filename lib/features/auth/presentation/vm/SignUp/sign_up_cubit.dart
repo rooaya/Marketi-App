@@ -2,8 +2,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:marketiapp/features/auth/data/repo/auth_repo.dart';
 import 'package:meta/meta.dart';
-import 'package:dartz/dartz.dart';
-import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/errors/failure.dart';
 import 'package:marketiapp/features/auth/data/models/SignUp/signup_request.dart';
 import 'package:marketiapp/features/auth/data/models/SignUp/signup_response.dart';

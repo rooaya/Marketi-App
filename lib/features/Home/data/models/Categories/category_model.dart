@@ -28,4 +28,15 @@ class Category {
       if (image != null) 'image': image,
     };
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Category &&
+          runtimeType == other.runtimeType &&
+          slug == other.slug &&
+          name == other.name;
+
+  @override
+  int get hashCode => slug.hashCode ^ name.hashCode;
 }

@@ -3,7 +3,6 @@ import 'package:bloc/bloc.dart';
 import 'package:marketiapp/features/auth/data/models/ResetPass/reset_password_response.dart';
 import 'package:marketiapp/features/auth/data/repo/auth_repo.dart';
 import 'package:meta/meta.dart';
-import 'package:dartz/dartz.dart';
 import 'package:marketiapp/core/errors/failure.dart';
 
 part 'forgot_pass_state.dart';

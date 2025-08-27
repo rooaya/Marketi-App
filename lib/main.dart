@@ -5,36 +5,35 @@ import 'package:marketiapp/core/helpers/shared_preferences.dart';
 import 'package:marketiapp/features/Favorites/data/models/repo/fav_repo.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/home_screen.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popular_product_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
+import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_details_screen.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
+import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
+import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass.dart';
+import 'package:marketiapp/features/auth/presentation/view/SignUp/sign_up_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/VerificationCode/verify_code_phone.dart';
+import 'package:marketiapp/features/splash/presentation/view/splash_screen.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/api/dio_consumer.dart';
 import 'package:marketiapp/core/theme/app_theme.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
-import 'package:marketiapp/features/Congratulations/presentation/view/congratulation_screen.dart';
-import 'package:marketiapp/features/auth/presentation/view/CreatePass/create_new_pass.dart';
-import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_provider.dart';
-import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_screen.dart';
-import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass.dart';
-import 'package:marketiapp/features/auth/presentation/view/ForgotPass/forgot_pass_email.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/home_screen.dart';
-import 'package:marketiapp/features/auth/presentation/view/Login/login_screen.dart';
-import 'package:marketiapp/features/OnBoarding/onboarding1_screen.dart';
-import 'package:marketiapp/features/OnBoarding/onboarding2_screen.dart';
-import 'package:marketiapp/features/OnBoarding/onboarding3_screen.dart';
-import 'package:marketiapp/features/auth/presentation/view/SignUp/sign_up_screen.dart';
-import 'package:marketiapp/features/splash/presentation/view/splash_screen.dart';
-import 'package:marketiapp/features/auth/presentation/view/VerificationCode/verify_code_email.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popular_product_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_details_screen.dart';
-import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:provider/provider.dart';
+import 'package:marketiapp/features/cart/presentation/view/cart/cart_provider.dart';
+import 'package:marketiapp/features/congratulations/presentation/view/congratulation_screen.dart';
+import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
+import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_screen.dart';
+import 'package:marketiapp/features/auth/presentation/view/login/login_screen.dart';
+import 'package:marketiapp/features/onboarding/onboarding1_screen.dart';
+import 'package:marketiapp/features/onboarding/onboarding2_screen.dart';
+import 'package:marketiapp/features/onboarding/onboarding3_screen.dart';
 
-// Import Favorite Cubit and Repo
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,43 +69,18 @@ class MarketiApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => FavoritesProvider()),
         // Provide HomeCubit at the app level
         BlocProvider<HomeCubit>(
-          create: (context) => homeCubit
-            ..getCategories()
-            ..getBrands(),
+          create: (context) => homeCubit,
         ),
         // Provide FavoriteCubit at the app level
-        // BlocProvider<FavoriteCubit>(create: (context) => favoriteCubit, lazy: false),
+        BlocProvider<FavoriteCubit>(
+          create: (context) => favoriteCubit,
+        ),
       ],
       child: MaterialApp(
         title: 'Marketi App',
         debugShowCheckedModeBanner: false,
         theme: MarketiTheme.lightTheme,
         initialRoute: '/splash',
-        // home: Scaffold(
-        //   body: BlocBuilder<HomeCubit, HomeState>(
-        //     builder: (context, state) {
-        //       if (state is HomeCategoryNamesLoading) {
-        //         return const Center(child: CircularProgressIndicator());
-        //       } else if (state is HomeFailure) {
-        //         return Center(
-        //           child: Text(state.failure.errorModel.message ?? "Error...!"),
-        //         );
-        //       } else if (state is HomeCategoryNamesSuccess) {
-        //         // return _buildNormalContent(context, state);
-        //         return ListView.builder(
-        //           itemBuilder: (context, index) {
-        //             return Text(state.categoryNames.list[index].name);
-        //           },
-        //           itemCount: state.categoryNames.list.length,
-        //         );
-        //       } else if (state is HomeCategoriesFailure) {
-        //         return Text("error");
-        //       } else {
-        //         return const Center(child: CircularProgressIndicator());
-        //       }
-        //     },
-        //   ),
-        // ),
         routes: {
           '/splash': (context) => const SplashScreen(),
           '/onboarding1': (context) => OnboardingPage1(
@@ -144,6 +118,18 @@ class MarketiApp extends StatelessWidget {
           '/brands': (context) => const BrandsScreen(),
           '/categories': (context) => const CategoryProductScreen(),
           '/popular-products': (context) => const PopularProductScreen(),
+          '/products-by-category': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return ProductsByCategoryScreen(
+              categoryName: args?['categoryName'] as String? ?? '',
+            );
+          },
+          '/products-by-brand': (context) {
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            return ProductsByBrandScreen(
+              brandName: args?['brandName'] as String? ?? '',
+            );
+          },
           '/product-details': (context) {
             final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
             return ProductDetailsScreen(

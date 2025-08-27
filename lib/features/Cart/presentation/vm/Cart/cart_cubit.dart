@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Cart/data/models/add_cart_response.dart';
 import 'package:marketiapp/features/Cart/data/models/cart_response.dart';
-import 'package:marketiapp/features/Cart/data/models/delete_cart_request.dart';
 import 'package:marketiapp/features/Cart/data/models/delete_cart_response.dart';
 import 'package:marketiapp/features/Cart/data/repo/cart_repo.dart';
 

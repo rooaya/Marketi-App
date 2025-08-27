@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/core/resources/assets_manager.dart';
 import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popular_product_screen.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';

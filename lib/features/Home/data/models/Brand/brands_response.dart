@@ -1,3 +1,5 @@
+import 'brand_model.dart';
+
 class BrandsResponse {
   final List<Brand> list;
 
@@ -13,27 +15,6 @@ class BrandsResponse {
   Map<String, dynamic> toJson() {
     return {
       'list': list.map((e) => e.toJson()).toList(),
-    };
-  }
-}
-
-class Brand {
-  final String name;
-  final String emoji;
-
-  Brand({required this.name, required this.emoji});
-
-  factory Brand.fromJson(Map<String, dynamic> json) {
-    return Brand(
-      name: json['name'],
-      emoji: json['emoji'],
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'emoji': emoji,
     };
   }
 }

@@ -1,5 +1,4 @@
-// lib/features/products/data/models/products_response.dart
-import 'product_model.dart';
+import 'package:marketiapp/features/Home/data/models/Products/product_model.dart';
 
 class ProductsResponse {
   final List<Product> list;
@@ -15,11 +14,11 @@ class ProductsResponse {
   });
 
   factory ProductsResponse.fromJson(Map<String, dynamic> json) {
+    var listJson = json['list'] as List;
+    List<Product> products = listJson.map((e) => Product.fromJson(e)).toList();
+
     return ProductsResponse(
-      list: (json['list'] as List<dynamic>?)
-          ?.map((item) => Product.fromJson(item))
-          .toList() ??
-          [],
+      list: products,
       total: json['total'] ?? 0,
       skip: json['skip'] ?? 0,
       limit: json['limit'] ?? 0,
@@ -28,7 +27,7 @@ class ProductsResponse {
 
   Map<String, dynamic> toJson() {
     return {
-      'list': list.map((item) => item.toJson()).toList(),
+      'list': list.map((e) => e.toJson()).toList(),
       'total': total,
       'skip': skip,
       'limit': limit,

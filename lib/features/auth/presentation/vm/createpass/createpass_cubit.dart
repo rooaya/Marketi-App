@@ -1,8 +1,6 @@
 // createpass_cubit.dart
 import 'package:bloc/bloc.dart';
 import 'package:meta/meta.dart';
-import 'package:dartz/dartz.dart';
-import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/errors/failure.dart';
 import 'package:marketiapp/features/auth/data/repo/auth_repo.dart';
 

@@ -1,14 +1,14 @@
-// lib/features/home/data/repos/home_repo.dart
 import 'package:dartz/dartz.dart';
 import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/errors/error_model.dart';
 import 'package:marketiapp/core/errors/exceptions.dart';
 import 'package:marketiapp/core/errors/failure.dart';
+import 'package:marketiapp/features/Home/data/models/Brand/brands_response.dart';
+import 'package:marketiapp/features/Home/data/models/Categories/categories_response.dart';
+import 'package:marketiapp/features/Home/data/models/Categories/category_names_response.dart';
 import 'package:marketiapp/features/Home/data/models/Products/product_model.dart';
 import 'package:marketiapp/features/Home/data/models/Products/product_response.dart';
-import 'package:marketiapp/features/home/data/models/categories/categories_response.dart';
-import 'package:marketiapp/features/home/data/models/categories/category_names_response.dart';
-import 'package:marketiapp/features/home/data/models/brand/brands_response.dart';
+
 import '../../../../core/api/end_points.dart';
 
 class HomeRepo {
@@ -80,48 +80,60 @@ class HomeRepo {
   }
 
   // Get products by category
-Future<Either<Failure, ProductsResponse>> getProductsByCategory(
-  String category, {
-  int skip = 0,
-  int limit = 10,
-}) async {
-  try {
-    final response = await api.get(
-      EndPoints.products,
-      queryParameters: {
-        'category': category,
-        'skip': skip,
-        'limit': limit,
-      },
-    );
-    return Right(ProductsResponse.fromJson(response));
-  } on ServerException catch (e) {
-    return Left(ServerFailure(e.errModel));
-  } catch (e) {
-    return Left(UnknownFailure(ErrorModel(e.toString())));
+  Future<Either<Failure, ProductsResponse>> getProductsByCategory(
+    String category, {
+    int skip = 0,
+    int limit = 10,
+  }) async {
+    try {
+      final response = await api.get(
+        EndPoints.products,
+        queryParameters: {
+          'category': category,
+          'skip': skip,
+          'limit': limit,
+        },
+      );
+      return Right(ProductsResponse.fromJson(response));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.errModel));
+    } catch (e) {
+      return Left(UnknownFailure(ErrorModel(e.toString())));
+    }
   }
-}
 
-Future<Either<Failure, ProductsResponse>> getProductsByBrand(
-  String brand, {
-  int skip = 0,
-  int limit = 10,
-}) async {
-  try {
-    final response = await api.get(
-      EndPoints.products,
-      queryParameters: {
-        'brand': brand,
-        'skip': skip,
-        'limit': limit,
-      },
-    );
-    return Right(ProductsResponse.fromJson(response));
-  } on ServerException catch (e) {
-    return Left(ServerFailure(e.errModel));
-  } catch (e) {
-    return Left(UnknownFailure(ErrorModel(e.toString())));
+  // Get products by brand
+  Future<Either<Failure, ProductsResponse>> getProductsByBrand(
+    String brand, {
+    int skip = 0,
+    int limit = 10,
+  }) async {
+    try {
+      final response = await api.get(
+        EndPoints.products,
+        queryParameters: {
+          'brand': brand,
+          'skip': skip,
+          'limit': limit,
+        },
+      );
+      return Right(ProductsResponse.fromJson(response));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.errModel));
+    } catch (e) {
+      return Left(UnknownFailure(ErrorModel(e.toString())));
+    }
   }
-}
 
+  // Get single product by ID
+  Future<Either<Failure, Product>> getProductById(String productId) async {
+    try {
+      final response = await api.get('${EndPoints.products}/$productId');
+      return Right(Product.fromJson(response));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.errModel));
+    } catch (e) {
+      return Left(UnknownFailure(ErrorModel(e.toString())));
+    }
+  }
 }
