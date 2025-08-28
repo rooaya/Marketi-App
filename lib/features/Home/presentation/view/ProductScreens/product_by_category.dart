@@ -1,8 +1,7 @@
-// lib/features/Home/presentation/view/ProductScreens/product_by_category.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/products_by_category_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
@@ -38,8 +37,7 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
   }
 
   void _loadInitialProducts() {
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
-    homeCubit.getProductsByCategory(widget.categoryName, skip: 0, limit: _limit);
+    context.read<ProductsByCategoryCubit>().getProducts(skip: 0, limit: _limit);
   }
 
   void _onScroll() {
@@ -51,18 +49,17 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
 
   void _loadMoreProducts() {
     if (_isLoadingMore) return;
-    
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
-    if (homeCubit.state is! HomeProductsLoading) {
+
+    final state = context.read<ProductsByCategoryCubit>().state;
+    if (state is! ProductsByCategoryLoading) {
       setState(() {
         _isLoadingMore = true;
       });
       _currentPage++;
-      homeCubit.getProductsByCategory(
-        widget.categoryName, 
-        skip: _currentPage * _limit, 
-        limit: _limit
-      );
+      context.read<ProductsByCategoryCubit>().getProducts(
+            skip: _currentPage * _limit,
+            limit: _limit,
+          );
     }
   }
 
@@ -76,7 +73,7 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with back button and profile icon
+              // Header
               Row(
                 children: [
                   IconButton(
@@ -143,34 +140,37 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                   ),
                 ),
                 onChanged: (value) {
-                  // Implement search functionality if needed
+                  // Search functionality
                 },
               ),
               const SizedBox(height: 20),
 
               // Products grid
               Expanded(
-                child: BlocConsumer<HomeCubit, HomeState>(
+                child: BlocConsumer<ProductsByCategoryCubit, ProductsByCategoryState>(
                   listener: (context, state) {
-                    if (state is HomeProductsSuccess) {
+                    if (state is ProductsByCategorySuccess) {
+                      setState(() {
+                        _isLoadingMore = false;
+                      });
+                    } else if (state is ProductsByCategoryFailure) {
                       setState(() {
                         _isLoadingMore = false;
                       });
                     }
                   },
                   builder: (context, state) {
-                    if (state is HomeProductsLoading && _currentPage == 0) {
+                    if (state is ProductsByCategoryLoading && _currentPage == 0) {
                       return const Center(child: CircularProgressIndicator());
-                    } else if (state is HomeProductsFailure) {
+                    } else if (state is ProductsByCategoryFailure) {
                       return Center(
                         child: Text(
                           state.failure.errorModel.message ?? 'Failed to load products',
                           textAlign: TextAlign.center,
                         ),
                       );
-                    } else if (state is HomeProductsSuccess) {
+                    } else if (state is ProductsByCategorySuccess) {
                       final products = state.products.list;
-                      
                       if (products.isEmpty) {
                         return Center(
                           child: Text(
@@ -180,7 +180,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                           ),
                         );
                       }
-
                       return GridView.builder(
                         controller: _scrollController,
                         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -213,7 +212,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
   Widget _buildProductCard(BuildContext context, dynamic product) {
     return BlocBuilder<FavoriteCubit, FavoriteState>(
       builder: (context, favoriteState) {
-        // Extract product data safely
         String title = 'Unknown Product';
         double price = 0.0;
         String thumbnail = '';
@@ -251,7 +249,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Product image
                       Center(
                         child: SizedBox(
                           width: 100,
@@ -267,8 +264,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-
-                      // Product name
                       Text(
                         title,
                         style: const TextStyle(
@@ -279,8 +274,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 4),
-
-                      // Product category
                       Text(
                         widget.categoryName,
                         style: const TextStyle(
@@ -291,8 +284,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-
-                      // Price and Add button
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -329,8 +320,6 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                     ],
                   ),
                 ),
-                
-                // Favorite icon in top right corner
                 Positioned(
                   top: 8,
                   right: 8,

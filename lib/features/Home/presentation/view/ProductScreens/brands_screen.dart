@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/brand_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
@@ -105,18 +105,18 @@ class BrandsScreen extends StatelessWidget {
 
               // Brands grid
               Expanded(
-                child: BlocBuilder<HomeCubit, HomeState>(
+                child: BlocBuilder<BrandCubit, BrandState>(
                   builder: (context, state) {
-                    if (state is HomeLoading) {
+                    if (state is BrandLoading) {
                       return const Center(child: CircularProgressIndicator());
-                    } else if (state is HomeFailure) {
+                    } else if (state is BrandFailure) {
                       return Center(
                         child: Text(
                           'Error: ${state.failure.errorModel.message}',
                           textAlign: TextAlign.center,
                         ),
                       );
-                    } else if (state is HomeSuccess) {
+                    } else if (state is BrandSuccess) {
                       return _buildBrandsGrid(
                         context,
                         state.brands.list.cast<Brand>(),

@@ -1,6 +1,6 @@
-// lib/features/Home/presentation/view/ProductScreens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/helpers/navigation_helper.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
@@ -12,7 +12,10 @@ import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popula
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_details_screen.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+
+import 'package:marketiapp/features/Home/presentation/vm/home/brand_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/category_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/product_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/cart/presentation/view/Cart/cart_screen.dart';
 import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_screen.dart';
@@ -25,16 +28,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  bool _isMounted = false;
+
   @override
   void initState() {
     super.initState();
-    // Load home data when screen initializes
+    _isMounted = true;
+    
+    // Load data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<HomeCubit>().getHomeData();
-      // Load favorites and cart data
-      context.read<FavoriteCubit>().getFavorites("");
-      context.read<CartCubit>().getCart("");
+      if (_isMounted) {
+        // Load favorites and cart data
+        context.read<FavoriteCubit>().getFavorites("");
+        context.read<CartCubit>().getCart("");
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _isMounted = false;
+    super.dispose();
   }
 
   @override
@@ -43,24 +57,30 @@ class _HomeScreenState extends State<HomeScreen> {
       listeners: [
         BlocListener<CartCubit, CartState>(
           listener: (context, state) {
-            if (state is CartAddSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Product added to cart')),
-              );
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_isMounted && state is CartAddSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Product added to cart')),
+                );
+              }
+            });
           },
         ),
         BlocListener<FavoriteCubit, FavoriteState>(
           listener: (context, state) {
-            if (state is FavoriteAddSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Added to favorites')),
-              );
-            } else if (state is FavoriteRemoveSuccess) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Removed from favorites')),
-              );
-            }
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_isMounted) return;
+              
+              if (state is FavoriteAddSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Added to favorites')),
+                );
+              } else if (state is FavoriteRemoveSuccess) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Removed from favorites')),
+                );
+              }
+            });
           },
         ),
       ],
@@ -70,65 +90,38 @@ class _HomeScreenState extends State<HomeScreen> {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
-            child: BlocBuilder<HomeCubit, HomeState>(
-              builder: (context, state) {
-                if (state is HomeLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (state is HomeFailure) {
-                  return Center(
-                    child: Text(
-                      'Error: ${state.failure.toString()}',
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                } else if (state is HomeSuccess) {
-                  return _buildHomeContent(context, state);
-                } else {
-                  return const Center(child: CircularProgressIndicator());
-                }
-              },
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with greeting and profile
+                  _buildHeader(),
+                  const SizedBox(height: 20),
+
+                  // Search bar
+                  _buildSearchBar(),
+                  const SizedBox(height: 24),
+
+                  // Special Deal Banner
+                  _buildSpecialDealBanner(),
+                  const SizedBox(height: 24),
+
+                  // Popular products section
+                  _buildPopularProductsSection(context),
+                  const SizedBox(height: 24),
+
+                  // Categories section
+                  _buildCategoriesSection(context),
+                  const SizedBox(height: 24),
+
+                  // Brands section
+                  _buildBrandsSection(context),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildHomeContent(BuildContext context, HomeSuccess state) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with greeting and profile
-          _buildHeader(),
-          const SizedBox(height: 20),
-
-          // Search bar
-          _buildSearchBar(),
-          const SizedBox(height: 24),
-
-          // Special Deal Banner
-          _buildSpecialDealBanner(),
-          const SizedBox(height: 24),
-
-          // Popular products section - Show only 3 products
-          if (state.products.list.isNotEmpty)
-            _buildPopularProductsSection(
-                context, state.products.list.cast<Product>().take(3).toList()),
-          const SizedBox(height: 24),
-
-          // Categories section - Show only 6 categories
-          if (state.categories.list.isNotEmpty)
-            _buildCategoriesSection(context,
-                state.categories.list.cast<Category>().take(6).toList()),
-          const SizedBox(height: 24),
-
-          // Brands section - Show only 3 brands
-          if (state.brands.list.isNotEmpty)
-            _buildBrandsSection(
-                context, state.brands.list.cast<Brand>().take(3).toList()),
-          const SizedBox(height: 24),
-        ],
       ),
     );
   }
@@ -160,12 +153,7 @@ class _HomeScreenState extends State<HomeScreen> {
         IconButton(
           icon: const Icon(Icons.person_2_rounded, size: 30),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ProfileScreen(),
-              ),
-            );
+            NavigationHelper.navigateTo(context, const ProfileScreen());
           },
         ),
       ],
@@ -224,8 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPopularProductsSection(
-      BuildContext context, List<Product> products) {
+  Widget _buildPopularProductsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -241,12 +228,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const PopularProductScreen(),
-                  ),
-                );
+                NavigationHelper.navigateTo(context, const PopularProductScreen());
               },
               child: const Text(
                 'View all',
@@ -256,19 +238,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 220,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
+        BlocBuilder<ProductCubit, ProductState>(
+          buildWhen: (previous, current) =>
+              current is ProductLoading ||
+              current is ProductSuccess ||
+              current is ProductFailure,
+          builder: (context, state) {
+            if (state is ProductLoading) {
+              return const Center(child: Text("ProductsLoading.....!"));
+            } else if (state is ProductFailure) {
+              return const Center(child: Text("ProductsFailure.....!"));
+            } else if (state is ProductSuccess) {
+              final products = state.products.list.cast<Product>().take(3).toList();
               return SizedBox(
-                width: 160,
-                child: _buildProductCard(context, product),
+                height: 220,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    final product = products[index];
+                    return SizedBox(
+                      width: 160,
+                      child: _buildProductCard(context, product),
+                    );
+                  },
+                ),
               );
-            },
-          ),
+            } else {
+              return const SizedBox.shrink();
+            }
+          },
         ),
       ],
     );
@@ -288,17 +287,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
-              Navigator.push(
+              NavigationHelper.navigateTo(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ProductDetailsScreen(
-                    id: product.id,
-                    name: product.title,
-                    imageUrl: product.thumbnail,
-                    price: product.price,
-                    rating: product.rating,
-                    description: product.description,
-                  ),
+                ProductDetailsScreen(
+                  id: product.id,
+                  name: product.title,
+                  imageUrl: product.thumbnail,
+                  price: product.price,
+                  rating: product.rating,
+                  description: product.description,
                 ),
               );
             },
@@ -334,6 +331,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             size: 20,
                           ),
                           onPressed: () {
+                            if (!_isMounted) return;
+                            
                             if (isFavorite) {
                               context
                                   .read<FavoriteCubit>()
@@ -397,9 +396,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           icon: const Icon(Icons.add,
                               size: 16, color: Colors.white),
                           onPressed: () {
-                            context
-                                .read<CartCubit>()
-                                .addToCart("", product.id, 1);
+                            if (_isMounted) {
+                              context
+                                  .read<CartCubit>()
+                                  .addToCart("", product.id, 1);
+                            }
                           },
                         ),
                       ),
@@ -414,8 +415,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCategoriesSection(
-      BuildContext context, List<Category> categories) {
+  Widget _buildCategoriesSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -431,12 +431,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CategoryProductScreen(),
-                  ),
-                );
+                NavigationHelper.navigateTo(context, const CategoryProductScreen());
               },
               child: const Text(
                 'View all',
@@ -446,19 +441,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            childAspectRatio: 0.9,
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-          ),
-          itemCount: categories.length,
-          itemBuilder: (context, index) {
-            final category = categories[index];
-            return _buildCategoryCard(context, category);
+        BlocBuilder<CategoryCubit, CategoryState>(
+          buildWhen: (previous, current) =>
+              current is CategoryLoading ||
+              current is CategorySuccess ||
+              current is CategoryFailure,
+          builder: (context, state) {
+            if (state is CategoryLoading) {
+              return const Center(child: Text("CategoriesLoading.....!"));
+            } else if (state is CategoryFailure) {
+              return const Center(child: Text("CategoriesFailure.....!"));
+            } else if (state is CategorySuccess) {
+              final categories = state.categories.list.cast<Category>().take(6).toList();
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 0.9,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return _buildCategoryCard(context, category);
+                },
+              );
+            } else {
+              return const SizedBox.shrink();
+            }
           },
         ),
       ],
@@ -472,12 +484,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          Navigator.push(
+          NavigationHelper.navigateTo(
             context,
-            MaterialPageRoute(
-              builder: (context) => ProductsByCategoryScreen(
-                categoryName: category.name,
-              ),
+            ProductsByCategoryScreen(
+              categoryName: category.name,
             ),
           );
         },
@@ -510,7 +520,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBrandsSection(BuildContext context, List<Brand> brands) {
+  Widget _buildBrandsSection(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -526,12 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BrandsScreen(),
-                  ),
-                );
+                NavigationHelper.navigateTo(context, const BrandsScreen());
               },
               child: const Text(
                 'View all',
@@ -541,19 +546,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: brands.length,
-            itemBuilder: (context, index) {
-              final brand = brands[index];
-              return Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: _buildBrandCard(context, brand),
+        BlocBuilder<BrandCubit, BrandState>(
+          buildWhen: (previous, current) =>
+              current is BrandLoading ||
+              current is BrandSuccess ||
+              current is BrandFailure,
+          builder: (context, state) {
+            if (state is BrandLoading) {
+              return const Center(child: Text("BrandsLoading.....!"));
+            } else if (state is BrandFailure) {
+              return const Center(child: Text("BrandsFailure.....!"));
+            } else if (state is BrandSuccess) {
+              final brands = state.brands.list.cast<Brand>().take(3).toList();
+              return SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: brands.length,
+                  itemBuilder: (context, index) {
+                    final brand = brands[index];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildBrandCard(context, brand),
+                    );
+                  },
+                ),
               );
-            },
-          ),
+            } else {
+              return const SizedBox.shrink();
+            }
+          },
         ),
       ],
     );
@@ -566,12 +588,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          Navigator.push(
+          NavigationHelper.navigateTo(
             context,
-            MaterialPageRoute(
-              builder: (context) => ProductsByBrandScreen(
-                brandName: brand.name,
-              ),
+            ProductsByBrandScreen(
+              brandName: brand.name,
             ),
           );
         },
@@ -674,17 +694,10 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: (index) {
             switch (index) {
               case 1:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const CartScreen()),
-                );
+                NavigationHelper.navigateTo(context, const CartScreen());
                 break;
               case 2:
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const FavoritesScreen()),
-                );
+                NavigationHelper.navigateTo(context, const FavoritesScreen());
                 break;
             }
           },

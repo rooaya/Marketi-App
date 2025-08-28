@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/category_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
@@ -105,18 +105,18 @@ class CategoryProductScreen extends StatelessWidget {
 
               // Categories grid
               Expanded(
-                child: BlocBuilder<HomeCubit, HomeState>(
+                child: BlocBuilder<CategoryCubit, CategoryState>(
                   builder: (context, state) {
-                    if (state is HomeLoading) {
+                    if (state is CategoryLoading) {
                       return const Center(child: CircularProgressIndicator());
-                    } else if (state is HomeFailure) {
+                    } else if (state is CategoryFailure) {
                       return Center(
                         child: Text(
                           'Error: ${state.failure.errorModel.message}',
                           textAlign: TextAlign.center,
                         ),
                       );
-                    } else if (state is HomeSuccess) {
+                    } else if (state is CategorySuccess) {
                       return _buildCategoriesGrid(
                         context,
                         state.categories.list.cast<Category>(),

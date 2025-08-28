@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/popular_products_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
@@ -11,7 +11,7 @@ class PopularProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
+    final homeCubit = BlocProvider.of<PopularProductsCubit>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -94,13 +94,13 @@ class PopularProductScreen extends StatelessWidget {
               const SizedBox(height: 20),
 
               // Content with BlocBuilder
-              BlocBuilder<HomeCubit, HomeState>(
+              BlocBuilder<PopularProductsCubit, PopularProductsState>(
                 builder: (context, state) {
-                  if (state is HomeLoading) {
+                  if (state is PopularProductsLoading) {
                     return const Expanded(
                       child: Center(child: CircularProgressIndicator()),
                     );
-                  } else if (state is HomeFailure) {
+                  } else if (state is PopularProductsFailure) {
                     return Expanded(
                       child: Center(
                         child: Text(
@@ -108,7 +108,7 @@ class PopularProductScreen extends StatelessWidget {
                         ),
                       ),
                     );
-                  } else if (state is HomeSuccess) {
+                  } else if (state is PopularProductsSuccess) {
                     return _buildNormalContent(context, state.products.list);
                   } else {
                     return const Expanded(
