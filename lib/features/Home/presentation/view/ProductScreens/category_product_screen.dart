@@ -1,11 +1,11 @@
+// lib/features/Home/presentation/view/ProductScreens/category_product_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
+import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
 class CategoryProductScreen extends StatelessWidget {
   const CategoryProductScreen({super.key});
@@ -151,112 +151,109 @@ class CategoryProductScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryCard(BuildContext context, Category category) {
-    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
-    final isFavorite = favoritesProvider.isFavorite(category.name);
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductsByCategoryScreen(
-                categoryName: category.name,
-              ),
-            ),
-          );
-        },
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Category icon
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: Icon(
-                      _getCategoryIcon(category.name),
-                      size: 30,
-                      color: Colors.grey[600],
-                    ),
+    return BlocBuilder<FavoriteCubit, FavoriteState>(
+      builder: (context, state) {
+        final isFavorite = state is FavoriteSuccess && 
+            state.favoriteResponse.list.any((item) => item.id == category.name);
+        
+        return Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductsByCategoryScreen(
+                    categoryName: category.name,
                   ),
-                  const SizedBox(height: 12),
-                  
-                  // Category name
-                  Text(
-                    category.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // View products button
-                  Container(
-                    width: double.infinity,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'View Products',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Category icon
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: Icon(
+                          _getCategoryIcon(category.name),
+                          size: 30,
+                          color: Colors.grey[600],
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      
+                      // Category name
+                      Text(
+                        category.name,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // View products button
+                      Container(
+                        width: double.infinity,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'View Products',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            
-            // Favorite icon in top right corner
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.grey,
-                  size: 20,
                 ),
-                onPressed: () {
-                  if (isFavorite) {
-                    favoritesProvider.removeFromFavorites(category.name);
-                  } else {
-                    favoritesProvider.addToFavorites({
-                      'id': category.name,
-                      'name': category.name,
-                      'imageUrl': '',
-                      'price': 0.0,
-                      'rating': 0.0,
-                      'type': 'category',
-                    });
-                  }
-                },
-              ),
+                
+                // Favorite icon in top right corner
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (isFavorite) {
+                        context.read<FavoriteCubit>().removeFromFavorite("", category.name);
+                      } else {
+                        context.read<FavoriteCubit>().addToFavorite("", category.name);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

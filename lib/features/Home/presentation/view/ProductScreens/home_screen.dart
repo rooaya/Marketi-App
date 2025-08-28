@@ -1,10 +1,8 @@
 // lib/features/Home/presentation/view/ProductScreens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_screen.dart';
-import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_screen.dart';
+import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
+import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
 import 'package:marketiapp/features/Home/data/models/Products/product_model.dart';
@@ -16,8 +14,8 @@ import 'package:marketiapp/features/Home/presentation/view/ProductScreens/produc
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_details_screen.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
-import 'package:provider/provider.dart';
+import 'package:marketiapp/features/cart/presentation/view/Cart/cart_screen.dart';
+import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,36 +31,63 @@ class _HomeScreenState extends State<HomeScreen> {
     // Load home data when screen initializes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeCubit>().getHomeData();
+      // Load favorites and cart data
+      context.read<FavoriteCubit>().getFavorites("");
+      context.read<CartCubit>().getCart("");
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<CartProvider>(context);
-    
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavigationBar(context, cart),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, state) {
-              if (state is HomeLoading) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (state is HomeFailure) {
-                return Center(
-                  child: Text(
-                    'Error: ${state.failure.errorModel.message}',
-                    textAlign: TextAlign.center,
-                  ),
-                );
-              } else if (state is HomeSuccess) {
-                return _buildHomeContent(context, state);
-              } else {
-                return const Center(child: CircularProgressIndicator());
-              }
-            },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CartCubit, CartState>(
+          listener: (context, state) {
+            if (state is CartAddSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Product added to cart')),
+              );
+            }
+          },
+        ),
+        BlocListener<FavoriteCubit, FavoriteState>(
+          listener: (context, state) {
+            if (state is FavoriteAddSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Added to favorites')),
+              );
+            } else if (state is FavoriteRemoveSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Removed from favorites')),
+              );
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        bottomNavigationBar: _buildBottomNavigationBar(context),
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: BlocBuilder<HomeCubit, HomeState>(
+              builder: (context, state) {
+                if (state is HomeLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (state is HomeFailure) {
+                  return Center(
+                    child: Text(
+                      'Error: ${state.failure.toString()}',
+                      textAlign: TextAlign.center,
+                    ),
+                  );
+                } else if (state is HomeSuccess) {
+                  return _buildHomeContent(context, state);
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
           ),
         ),
       ),
@@ -77,34 +102,31 @@ class _HomeScreenState extends State<HomeScreen> {
           // Header with greeting and profile
           _buildHeader(),
           const SizedBox(height: 20),
-          
+
           // Search bar
           _buildSearchBar(),
           const SizedBox(height: 24),
-          
+
           // Special Deal Banner
           _buildSpecialDealBanner(),
           const SizedBox(height: 24),
-          
+
           // Popular products section - Show only 3 products
-          _buildPopularProductsSection(
-            context, 
-            state.products.list.cast<Product>().take(3).toList()
-          ),
+          if (state.products.list.isNotEmpty)
+            _buildPopularProductsSection(
+                context, state.products.list.cast<Product>().take(3).toList()),
           const SizedBox(height: 24),
-          
+
           // Categories section - Show only 6 categories
-          _buildCategoriesSection(
-            context, 
-            state.categories.list.cast<Category>().take(6).toList()
-          ),
+          if (state.categories.list.isNotEmpty)
+            _buildCategoriesSection(context,
+                state.categories.list.cast<Category>().take(6).toList()),
           const SizedBox(height: 24),
-          
+
           // Brands section - Show only 3 brands
-          _buildBrandsSection(
-            context, 
-            state.brands.list.cast<Brand>().take(3).toList()
-          ),
+          if (state.brands.list.isNotEmpty)
+            _buildBrandsSection(
+                context, state.brands.list.cast<Brand>().take(3).toList()),
           const SizedBox(height: 24),
         ],
       ),
@@ -162,7 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
           hintStyle: TextStyle(color: Colors.grey[600]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         ),
       ),
     );
@@ -201,7 +224,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPopularProductsSection(BuildContext context, List<Product> products) {
+  Widget _buildPopularProductsSection(
+      BuildContext context, List<Product> products) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -251,156 +275,147 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProductCard(BuildContext context, Product product) {
-    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
-    final isFavorite = favoritesProvider.isFavorite(product.id);
+    return BlocBuilder<FavoriteCubit, FavoriteState>(
+      builder: (context, state) {
+        final isFavorite = state is FavoriteSuccess &&
+            state.favoriteResponse.list.any((item) => item.id == product.id);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(right: 12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductDetailsScreen(
-                id: product.id,
-                name: product.title,
-                imageUrl: product.thumbnail,
-                price: product.price,
-                rating: product.rating,
-                description: product.description,
-              ),
-            ),
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Product image with favorite icon
-              Stack(
-                children: [
-                  Center(
-                    child: SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: product.thumbnail.isNotEmpty
-                          ? Image.network(
-                              product.thumbnail,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildPlaceholderImage(),
-                            )
-                          : _buildPlaceholderImage(),
-                    ),
+        return Card(
+          elevation: 2,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.only(right: 12),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailsScreen(
+                    id: product.id,
+                    name: product.title,
+                    imageUrl: product.thumbnail,
+                    price: product.price,
+                    rating: product.rating,
+                    description: product.description,
                   ),
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.grey,
-                        size: 20,
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Product image with favorite icon
+                  Stack(
+                    children: [
+                      Center(
+                        child: SizedBox(
+                          width: 80,
+                          height: 80,
+                          child: product.thumbnail.isNotEmpty
+                              ? Image.network(
+                                  product.thumbnail,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      _buildPlaceholderImage(),
+                                )
+                              : _buildPlaceholderImage(),
+                        ),
                       ),
-                      onPressed: () {
-                        if (isFavorite) {
-                          favoritesProvider.removeFromFavorites(product.id);
-                        } else {
-                          favoritesProvider.addToFavorites({
-                            'id': product.id,
-                            'name': product.title,
-                            'imageUrl': product.thumbnail,
-                            'price': product.price,
-                            'rating': product.rating,
-                          });
-                        }
-                      },
-                    ),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite ? Colors.red : Colors.grey,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            if (isFavorite) {
+                              context
+                                  .read<FavoriteCubit>()
+                                  .removeFromFavorite("", product.id);
+                            } else {
+                              context
+                                  .read<FavoriteCubit>()
+                                  .addToFavorite("", product.id);
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
+                  const SizedBox(height: 8),
 
-              // Product name
-              Text(
-                product.title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-
-              // Product brand
-              Text(
-                product.brand,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-
-              // Price and Add button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                  // Product name
                   Text(
-                    '\$${product.price.toStringAsFixed(2)}',
+                    product.title,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 4),
+
+                  // Product brand
+                  Text(
+                    product.brand,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
                     ),
-                    child: IconButton(
-                      icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                      onPressed: () {
-                        final cartProvider = Provider.of<CartProvider>(context, listen: false);
-                        cartProvider.addItem(
-                          product.id,
-                          product.title,
-                          product.thumbnail,
-                          product.price,
-                          product.rating,
-                          product.description,
-                          'M', // Default size
-                          1,
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${product.title} added to cart'),
-                            duration: const Duration(seconds: 2),
-                          ),
-                        );
-                      },
-                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Price and Add button
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '\$${product.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Container(
+                        width: 30,
+                        height: 30,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.add,
+                              size: 16, color: Colors.white),
+                          onPressed: () {
+                            context
+                                .read<CartCubit>()
+                                .addToCart("", product.id, 1);
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildCategoriesSection(BuildContext context, List<Category> categories) {
+  Widget _buildCategoriesSection(
+      BuildContext context, List<Category> categories) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -595,77 +610,86 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context, CartProvider cart) {
-    final itemCount = cart.items.fold(0, (sum, item) => sum + item.quantity);
-    
-    return BottomNavigationBar(
-      currentIndex: 0,
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.grey,
-      items: [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.home),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Stack(
-            children: [
-              const Icon(Icons.shopping_cart),
-              if (itemCount > 0)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      itemCount.toString(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          label: 'Cart',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),
-          label: 'Favorites',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.menu),
-          label: 'Menu',
-        ),
-      ],
-      onTap: (index) {
-        switch (index) {
-          case 1:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CartScreen()),
-            );
-            break;
-          case 2:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const FavoritesScreen()),
-            );
-            break;
+  Widget _buildBottomNavigationBar(BuildContext context) {
+    return BlocBuilder<CartCubit, CartState>(
+      builder: (context, state) {
+        int itemCount = 0;
+
+        if (state is CartSuccess) {
+          itemCount = state.cartResponse.items
+              .fold(0, (sum, item) => sum + item.quantity);
         }
+
+        return BottomNavigationBar(
+          currentIndex: 0,
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey,
+          items: [
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Stack(
+                children: [
+                  const Icon(Icons.shopping_cart),
+                  if (itemCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        child: Text(
+                          itemCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              label: 'Cart',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.favorite),
+              label: 'Favorites',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.menu),
+              label: 'Menu',
+            ),
+          ],
+          onTap: (index) {
+            switch (index) {
+              case 1:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartScreen()),
+                );
+                break;
+              case 2:
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FavoritesScreen()),
+                );
+                break;
+            }
+          },
+        );
       },
     );
   }
 }
-

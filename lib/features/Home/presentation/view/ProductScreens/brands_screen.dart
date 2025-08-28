@@ -1,12 +1,11 @@
+// lib/features/Home/presentation/view/ProductScreens/brands_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_brand.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:marketiapp/features/cart/presentation/view/cart/cart_provider.dart';
-import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
+import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
 class BrandsScreen extends StatelessWidget {
   const BrandsScreen({super.key});
@@ -152,104 +151,100 @@ class BrandsScreen extends StatelessWidget {
   }
 
   Widget _buildBrandCard(BuildContext context, Brand brand) {
-    final favoritesProvider =
-        Provider.of<FavoritesProvider>(context, listen: false);
-    final isFavorite = favoritesProvider.isFavorite(brand.name);
-
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProductsByBrandScreen(
-                brandName: brand.name,
-              ),
-            ),
-          );
-        },
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Brand emoji/icon
-                  Text(
-                    brand.emoji.isNotEmpty ? brand.emoji : '🏢',
-                    style: const TextStyle(fontSize: 40),
+    return BlocBuilder<FavoriteCubit, FavoriteState>(
+      builder: (context, state) {
+        final isFavorite = state is FavoriteSuccess && 
+            state.favoriteResponse.list.any((item) => item.id == brand.name);
+        
+        return Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductsByBrandScreen(
+                    brandName: brand.name,
                   ),
-                  const SizedBox(height: 12),
+                ),
+              );
+            },
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Brand emoji/icon
+                      Text(
+                        brand.emoji.isNotEmpty ? brand.emoji : '🏢',
+                        style: const TextStyle(fontSize: 40),
+                      ),
+                      const SizedBox(height: 12),
 
-                  // Brand name
-                  Text(
-                    brand.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // View products button
-                  Container(
-                    width: double.infinity,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'View Products',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
+                      // Brand name
+                      Text(
+                        brand.name,
+                        style: const TextStyle(
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+                      const SizedBox(height: 8),
 
-            // Favorite icon in top right corner
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.grey,
-                  size: 20,
+                      // View products button
+                      Container(
+                        width: double.infinity,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            'View Products',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                onPressed: () {
-                  if (isFavorite) {
-                    favoritesProvider.removeFromFavorites(brand.name);
-                  } else {
-                    favoritesProvider.addToFavorites({
-                      'id': brand.name,
-                      'name': brand.name,
-                      'imageUrl': '',
-                      'price': 0.0,
-                      'rating': 0.0,
-                      'type': 'brand',
-                    });
-                  }
-                },
-              ),
+
+                // Favorite icon in top right corner
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (isFavorite) {
+                        context.read<FavoriteCubit>().removeFromFavorite("", brand.name);
+                      } else {
+                        context.read<FavoriteCubit>().addToFavorite("", brand.name);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

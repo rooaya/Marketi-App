@@ -2,9 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/core/helpers/shared_preferences.dart';
+import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Favorites/data/models/repo/fav_repo.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
-import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
+import 'package:marketiapp/features/home/data/repo/home_repo.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/home_screen.dart';
@@ -24,16 +25,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:marketiapp/core/api/api_consumer.dart';
 import 'package:marketiapp/core/api/dio_consumer.dart';
 import 'package:marketiapp/core/theme/app_theme.dart';
-import 'package:marketiapp/features/cart/presentation/view/cart/cart_provider.dart';
+import 'package:marketiapp/features/Cart/data/repo/cart_repo.dart';
 import 'package:marketiapp/features/congratulations/presentation/view/congratulation_screen.dart';
-import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
 import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_screen.dart';
 import 'package:marketiapp/features/auth/presentation/view/login/login_screen.dart';
 import 'package:marketiapp/features/onboarding/onboarding1_screen.dart';
 import 'package:marketiapp/features/onboarding/onboarding2_screen.dart';
 import 'package:marketiapp/features/onboarding/onboarding3_screen.dart';
-
-import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,15 +49,19 @@ class MarketiApp extends StatelessWidget {
     final ApiConsumer apiConsumer = DioConsumer(dio: dio);
     final HomeRepo homeRepo = HomeRepo(api: apiConsumer);
     final FavoriteRepo favoriteRepo = FavoriteRepo(api: apiConsumer);
-    final HomeCubit homeCubit = HomeCubit(homeRepo: homeRepo);
-    final FavoriteCubit favoriteCubit = FavoriteCubit(favoriteRepo: favoriteRepo);
+    final CartRepo cartRepo = CartRepo(api: apiConsumer);
 
-    return MultiProvider(
+    return MultiBlocProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => CartProvider()),
-        ChangeNotifierProvider(create: (context) => FavoritesProvider()), // Add this
-        BlocProvider<HomeCubit>(create: (context) => homeCubit),
-        BlocProvider<FavoriteCubit>(create: (context) => favoriteCubit),
+        BlocProvider<HomeCubit>(
+          create: (context) => HomeCubit(homeRepo: homeRepo),
+        ),
+        BlocProvider<FavoriteCubit>(
+          create: (context) => FavoriteCubit(favoriteRepo: favoriteRepo),
+        ),
+        BlocProvider<CartCubit>(
+          create: (context) => CartCubit(cartRepo: cartRepo),
+        ),
       ],
       child: MaterialApp(
         title: 'Marketi App',
@@ -69,29 +71,38 @@ class MarketiApp extends StatelessWidget {
         routes: {
           '/splash': (context) => const SplashScreen(),
           '/onboarding1': (context) => OnboardingPage1(
-                onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding2'),
-                onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onNextPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/onboarding2'),
+                onSkipPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
               ),
           '/onboarding2': (context) => OnboardingPage2(
-                onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding3'),
+                onNextPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/onboarding3'),
                 onBackPressed: () => Navigator.pop(context),
-                onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onSkipPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
               ),
           '/onboarding3': (context) => OnboardingPage3(
-                onGetStartedPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                onGetStartedPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
                 onBackPressed: () => Navigator.pop(context),
               ),
           '/sign-up': (context) => const SignUpScreen(),
           '/login': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?;
             return LoginScreen(
-              onLoginSuccess: () => Navigator.pushReplacementNamed(context, '/home_screen'),
+              onLoginSuccess: () =>
+                  Navigator.pushReplacementNamed(context, '/home_screen'),
               initialEmail: args?['email']?.toString(),
             );
           },
-          '/forgot-password-phone': (context) => const ForgotPasswordPhoneScreen(),
+          '/forgot-password-phone': (context) =>
+              const ForgotPasswordPhoneScreen(),
           '/create-password': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?;
             return CreateNewPasswordScreen(
               email: args?['email'] as String? ?? '',
             );
@@ -104,19 +115,22 @@ class MarketiApp extends StatelessWidget {
           '/categories': (context) => const CategoryProductScreen(),
           '/popular-products': (context) => const PopularProductScreen(),
           '/products-by-category': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?;
             return ProductsByCategoryScreen(
               categoryName: args?['categoryName'] as String? ?? '',
             );
           },
           '/products-by-brand': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?;
             return ProductsByBrandScreen(
               brandName: args?['brandName'] as String? ?? '',
             );
           },
           '/product-details': (context) {
-            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments
+                as Map<String, dynamic>?;
             return ProductDetailsScreen(
               id: args?['id'] as String? ?? '',
               name: args?['name'] as String? ?? '',

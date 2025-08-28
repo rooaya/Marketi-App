@@ -1,465 +1,423 @@
-// lib/features/Home/presentation/view/ProductScreens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:marketiapp/core/resources/assets_manager.dart';
-import 'package:marketiapp/features/Cart/presentation/view/Cart/cart_provider.dart';
-import 'package:marketiapp/features/Favorites/presentation/view/Favourite/favourites_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
-import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
-import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
+import 'package:marketiapp/features/Cart/data/models/cart_model.dart';
+import 'package:marketiapp/features/Cart/data/models/cart_response.dart';
+import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:provider/provider.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load cart when screen initializes
+    // The token is automatically handled by ApiInterceptor
+    context.read<CartCubit>().getCart("");
+  }
+
+  void _refreshCart() {
+    context.read<CartCubit>().getCart("");
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<CartProvider>(context);
-    final homeCubit = BlocProvider.of<HomeCubit>(context);
-
-    // Load home data when screen is built
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   homeCubit.getHomeData();
-    // });
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      bottomNavigationBar: _buildBottomNavigationBar(context, cart),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // AppBar with user greeting
-              Row(
+    return BlocConsumer<CartCubit, CartState>(
+      listener: (context, state) {
+        if (state is CartAddSuccess || state is CartRemoveSuccess || state is CartUpdateSuccess) {
+          // Refresh cart after any successful operation
+          _refreshCart();
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Expanded(
-                    child: Text(
-                      'Welcome to Marketi',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                  // Header with back button and profile icon
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.person_2_rounded, size: 30),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "What are you looking for?",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 2.0,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: const Color.fromARGB(255, 255, 253, 253),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 20,
-                  ),
-                ),
-                onChanged: (value) {
-                  // Implement search functionality if needed
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Home content with BlocBuilder
-              BlocBuilder<HomeCubit, HomeState>(
-                builder: (context, state) {
-                  if (state is HomeLoading) {
-                    return const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  } else if (state is HomeFailure) {
-                    return Expanded(
-                      child: Center(
+                      const Expanded(
                         child: Text(
-                          'Error: ${state.failure.toString()}',
+                          'Products on Cart',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),
-                    );
-                  } else if (state is HomeSuccess) {
-                    return _buildNormalContent(context, state);
-                  } else {
-                    return const Expanded(
-                      child: Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                },
+                      IconButton(
+                        icon: const Icon(Icons.person_2_rounded, size: 30),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Cart items list
+                  Expanded(
+                    child: _buildCartContent(state),
+                  ),
+
+                  // Subtotal and Checkout section
+                  if (state is CartSuccess && state.cartResponse.items.isNotEmpty)
+                    _buildCheckoutSection(context, state.cartResponse),
+                  const SizedBox(height: 16),
+
+                  // Bottom navigation
+                  _buildBottomNavigationBar(),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildNormalContent(BuildContext context, HomeSuccess state) {
-    return Expanded(
-      child: SingleChildScrollView(
+  Widget _buildCartContent(CartState state) {
+    if (state is CartLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state is CartFailure) {
+      return Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Special Deal Banner
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: double.infinity,
-                height: 120,
-                child: Image.asset(
-                  AppAssets.offers,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    child: const Center(child: Icon(Icons.image)),
-                  ),
-                ),
-              ),
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            Text(
+              'Error: ${state.error}',
+              style: const TextStyle(fontSize: 16, color: Colors.red),
+              textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-
-            // Popular Product Section
-            _buildSectionHeader(
-              context,
-              'Popular Product',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Scaffold(), //Mariam  const PopularProductScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildHorizontalProductList([
-              _buildProductCard(
-                context,
-                'Black airbods',
-                'BBS',
-                AppAssets.airbods,
-              ),
-              _buildProductCard(
-                context,
-                'Smart Watch',
-                'S2 w3',
-                AppAssets.watch,
-              ),
-              _buildProductCard(context, 'Sony TV', '55 inch', AppAssets.TV),
-            ]),
-            const SizedBox(height: 24),
-
-            // Category Section with dynamic data
-            _buildSectionHeader(
-              context,
-              'Category',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CategoryProductScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
-              childAspectRatio: 0.8,
-              children: state.categories.list.take(6).map((category) {
-                return _buildCategoryCard(
-                  category.name,
-                  category.image ?? AppAssets.camera, // Fallback image
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 24),
-
-            // Brands Section with dynamic data
-            _buildSectionHeader(
-              context,
-              'Brands',
-              () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BrandsScreen(),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _buildHorizontalBrandList(
-              state.brands.list.take(3).map((brand) {
-                return _buildBrandCard(brand.name, brand.emoji ?? '🏢');
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(
-    BuildContext context,
-    String title,
-    VoidCallback onViewAll,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        TextButton(
-          onPressed: onViewAll,
-          child: const Text('View all', style: TextStyle(color: Colors.blue)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHorizontalProductList(List<Widget> items) {
-    return SizedBox(
-      height: 180,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) => SizedBox(width: 150, child: items[index]),
-      ),
-    );
-  }
-
-  Widget _buildHorizontalBrandList(List<Widget> items) {
-    return SizedBox(
-      height: 120,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: items.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) => items[index],
-      ),
-    );
-  }
-
-  Widget _buildProductCard(
-    BuildContext context,
-    String title,
-    String subtitle,
-    String imagePath,
-  ) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: SizedBox(
-                width: 100,
-                height: 100,
-                child: Image.asset(
-                  imagePath,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.image),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ElevatedButton(
+              onPressed: _refreshCart,
+              child: const Text('Retry'),
             ),
           ],
         ),
-      ),
-    );
+      );
+    }
+
+    if (state is CartSuccess) {
+      final cartResponse = state.cartResponse;
+      
+      if (cartResponse.items.isEmpty) {
+        return _buildEmptyCart();
+      }
+
+      return ListView.builder(
+        itemCount: cartResponse.items.length,
+        itemBuilder: (context, index) {
+          final item = cartResponse.items[index];
+          return _buildCartItemCard(item);
+        },
+      );
+    }
+
+    // Initial state
+    return const Center(child: CircularProgressIndicator());
   }
 
-  Widget _buildCategoryCard(String title, String imagePath) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  Widget _buildEmptyCart() {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Image.asset(
-            imagePath,
-            width: 50,
-            height: 50,
-            fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => Container(
-              width: 40,
-              height: 40,
-              color: Colors.grey[200],
-              child: const Icon(Icons.category, size: 24),
-            ),
+          const Icon(Icons.shopping_cart_outlined, size: 64, color: Colors.grey),
+          const SizedBox(height: 16),
+          const Text(
+            'Your cart is empty',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            title,
-            style: const TextStyle(fontSize: 12),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          const Text(
+            'Add some products to your cart',
+            style: TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Continue Shopping'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBrandCard(String brandName, String emoji) {
-    return SizedBox(
-      width: 120,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                emoji,
-                style: const TextStyle(fontSize: 32),
+  Widget _buildCartItemCard(CartItem item) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product name
+            Text(
+              item.name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 8),
-              Text(
-                brandName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 8),
+
+            // Price
+            Text(
+              'Price: ${item.price.toStringAsFixed(2)} EGP',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+
+            // Quantity controls
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Item total
+                Text(
+                  'Total: ${(item.price * item.quantity).toStringAsFixed(2)} EGP',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                // Quantity controls
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove, size: 20),
+                      onPressed: () {
+                        if (item.quantity > 1) {
+                          // Decrease quantity
+                          context.read<CartCubit>().updateCartQuantity(
+                                "",
+                                item.id,
+                                item.quantity - 1,
+                              );
+                        } else {
+                          // Remove item if quantity becomes 0
+                          context.read<CartCubit>().removeFromCart(
+                                "",
+                                item.id,
+                              );
+                        }
+                      },
+                    ),
+                    Text(
+                      item.quantity.toString(),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add, size: 20),
+                      onPressed: () {
+                        // Increase quantity
+                        context.read<CartCubit>().updateCartQuantity(
+                              "",
+                              item.id,
+                              item.quantity + 1,
+                            );
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            // Remove button
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  context.read<CartCubit>().removeFromCart(
+                        "",
+                        item.id,
+                      );
+                },
+                child: const Text(
+                  'Remove',
+                  style: TextStyle(color: Colors.red),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildBottomNavigationBar(BuildContext context, CartProvider cart) {
-    return BottomNavigationBar(
-      currentIndex: 0, // Home is selected
-      type: BottomNavigationBarType.fixed,
-      selectedItemColor: Colors.blue,
-      unselectedItemColor: Colors.grey,
-      items: [
-        const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-        BottomNavigationBarItem(
-          icon: _buildCartBadge(cart),
-          label: 'Cart',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.favorite),
-          label: 'Favorites',
-        ),
-        const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
-      ],
-      onTap: (index) {
-        switch (index) {
-          case 1:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CartScreen()),
-            );
-            break;
-          case 2:
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const FavoritesScreen()),
-            );
-            break;
-          // Case 0 (Home) and 3 (Menu) don't need actions
-        }
-      },
+  Widget _buildCheckoutSection(BuildContext context, CartResponse cartResponse) {
+    final total = cartResponse.items.fold(
+      0.0,
+      (sum, item) => sum + (item.price * item.quantity),
     );
-  }
+    final totalItems = cartResponse.items.fold(
+      0,
+      (sum, item) => sum + item.quantity,
+    );
 
-  // Custom cart badge widget
-  Widget _buildCartBadge(CartProvider cart) {
-    final itemCount = cart.items.fold(0, (sum, item) => sum + item.quantity);
-    
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        const Icon(Icons.shopping_cart),
-        if (itemCount > 0)
-          Positioned(
-            top: -8,
-            right: -8,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(
-                color: Colors.red,
-                shape: BoxShape.circle,
-              ),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
-              child: Text(
-                itemCount.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        children: [
+          // Subtotal
+          const Text(
+            'Subtotal',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            '($totalItems items)',
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+
+          // Total price
+          Text(
+            '${total.toStringAsFixed(2)} EGP',
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Checkout button
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () {
+                // Checkout logic
+                _showCheckoutDialog(context, total);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                textAlign: TextAlign.center,
+              ),
+              child: const Text(
+                'Checkout',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showCheckoutDialog(BuildContext context, double total) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Checkout'),
+        content: Text('Proceed with checkout for ${total.toStringAsFixed(2)} EGP?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // Implement checkout logic here
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Checkout functionality coming soon!')),
+              );
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavigationBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildNavItem(Icons.home, 'Home'),
+          _buildNavItem(Icons.shopping_cart, 'Cart', isActive: true),
+          _buildNavItem(Icons.favorite, 'Favorites'),
+          _buildNavItem(Icons.menu, 'Menu'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, {bool isActive = false}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: isActive ? Colors.blue : Colors.grey,
+          size: 24,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: isActive ? Colors.blue : Colors.grey,
+          ),
+        ),
       ],
     );
   }

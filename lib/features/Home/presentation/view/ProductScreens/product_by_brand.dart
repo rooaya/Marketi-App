@@ -1,10 +1,10 @@
+// lib/features/Home/presentation/view/ProductScreens/product_by_brand.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/Home/home_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:marketiapp/features/cart/presentation/view/cart/cart_provider.dart';
-import 'package:marketiapp/features/favorites/presentation/view/favourite/favourites_provider.dart';
+import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
 class ProductsByBrandScreen extends StatefulWidget {
   final String brandName;
@@ -211,161 +211,149 @@ class _ProductsByBrandScreenState extends State<ProductsByBrandScreen> {
   }
 
   Widget _buildProductCard(BuildContext context, dynamic product) {
-    final favoritesProvider = Provider.of<FavoritesProvider>(context, listen: false);
-    final isFavorite = favoritesProvider.isFavorite(product.id);
+    return BlocBuilder<FavoriteCubit, FavoriteState>(
+      builder: (context, favoriteState) {
+        // Extract product data safely
+        String title = 'Unknown Product';
+        double price = 0.0;
+        String thumbnail = '';
+        double rating = 0.0;
+        String description = '';
+        String id = '';
 
-    // Extract product data safely
-    String title = 'Unknown Product';
-    double price = 0.0;
-    String thumbnail = '';
-    double rating = 0.0;
-    String description = '';
-    String id = '';
+        if (product is Map<String, dynamic>) {
+          title = product['title'] ?? product['name'] ?? 'Unknown Product';
+          price = (product['price'] ?? 0.0).toDouble();
+          thumbnail = product['thumbnail'] ?? product['imageUrl'] ?? '';
+          rating = (product['rating'] ?? 0.0).toDouble();
+          description = product['description'] ?? '';
+          id = product['id']?.toString() ?? '';
+        } else {
+          title = product.toString();
+          id = 'product_${product.hashCode}';
+        }
 
-    if (product is Map<String, dynamic>) {
-      title = product['title'] ?? product['name'] ?? 'Unknown Product';
-      price = (product['price'] ?? 0.0).toDouble();
-      thumbnail = product['thumbnail'] ?? product['imageUrl'] ?? '';
-      rating = (product['rating'] ?? 0.0).toDouble();
-      description = product['description'] ?? '';
-      id = product['id']?.toString() ?? '';
-    } else {
-      title = product.toString();
-      id = 'product_${product.hashCode}';
-    }
+        final isFavorite = favoriteState is FavoriteSuccess && 
+            favoriteState.favoriteResponse.list.any((item) => item.id == id);
 
-    return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          // Navigate to product details
-        },
-        child: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Product image
-                  Center(
-                    child: SizedBox(
-                      width: 100,
-                      height: 100,
-                      child: thumbnail.isNotEmpty
-                          ? Image.network(
-                              thumbnail,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  _buildPlaceholderImage(),
-                            )
-                          : _buildPlaceholderImage(),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Product name
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Product brand
-                  Text(
-                    widget.brandName,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price and Add button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () {
+              // Navigate to product details
+            },
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '\$${price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                          fontSize: 16,
+                      // Product image
+                      Center(
+                        child: SizedBox(
+                          width: 100,
+                          height: 100,
+                          child: thumbnail.isNotEmpty
+                              ? Image.network(
+                                  thumbnail,
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      _buildPlaceholderImage(),
+                                )
+                              : _buildPlaceholderImage(),
                         ),
                       ),
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 8),
+
+                      // Product name
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
-                        child: IconButton(
-                          icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                          onPressed: () {
-                            final cartProvider = Provider.of<CartProvider>(context, listen: false);
-                            cartProvider.addItem(
-                              id,
-                              title,
-                              thumbnail,
-                              price,
-                              rating,
-                              description,
-                              'M', // Default size
-                              1,
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('$title added to cart'),
-                                duration: const Duration(seconds: 2),
-                              ),
-                            );
-                          },
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Product brand
+                      Text(
+                        widget.brandName,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Price and Add button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '\$${price.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                              fontSize: 16,
+                            ),
+                          ),
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: IconButton(
+                              icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                              onPressed: () {
+                                context.read<CartCubit>().addToCart("", id, 1);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('$title added to cart'),
+                                    duration: const Duration(seconds: 2),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            
-            // Favorite icon in top right corner
-            Positioned(
-              top: 8,
-              right: 8,
-              child: IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.grey,
-                  size: 20,
                 ),
-                onPressed: () {
-                  if (isFavorite) {
-                    favoritesProvider.removeFromFavorites(id);
-                  } else {
-                    favoritesProvider.addToFavorites({
-                      'id': id,
-                      'name': title,
-                      'imageUrl': thumbnail,
-                      'price': price,
-                      'rating': rating,
-                    });
-                  }
-                },
-              ),
+                
+                // Favorite icon in top right corner
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: IconButton(
+                    icon: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.red : Colors.grey,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      if (isFavorite) {
+                        context.read<FavoriteCubit>().removeFromFavorite("", id);
+                      } else {
+                        context.read<FavoriteCubit>().addToFavorite("", id);
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

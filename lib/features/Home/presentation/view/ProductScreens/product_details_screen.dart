@@ -1,7 +1,8 @@
+// lib/features/Home/presentation/view/ProductScreens/product_details_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
-import 'package:marketiapp/features/cart/presentation/view/cart/cart_provider.dart';
-import 'package:provider/provider.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
   final String id;
@@ -31,8 +32,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<CartProvider>(context, listen: false);
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -274,7 +273,27 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 SizedBox(
                   width: double.infinity,
                   height: 56,
-          
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.read<CartCubit>().addToCart("", widget.id, _quantity);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('${widget.name} added to cart'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Add to Cart',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -285,6 +304,8 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                   child: OutlinedButton(
                     onPressed: () {
                       // Buy now functionality
+                      context.read<CartCubit>().addToCart("", widget.id, _quantity);
+                      // Navigate to cart screen or checkout
                     },
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.blue,
