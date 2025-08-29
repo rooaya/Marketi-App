@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/helpers/app_function.dart';
 import 'package:marketiapp/core/helpers/navigation_helper.dart';
+import 'package:marketiapp/core/resources/app_extantion.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
@@ -34,15 +36,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _isMounted = true;
-    
-    // Load data when screen initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_isMounted) {
-        // Load favorites and cart data
-        context.read<FavoriteCubit>().getFavorites("");
-        context.read<CartCubit>().getCart("");
-      }
-    });
   }
 
   @override
@@ -53,72 +46,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MultiBlocListener(
-      listeners: [
-        BlocListener<CartCubit, CartState>(
-          listener: (context, state) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_isMounted && state is CartAddSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Product added to cart')),
-                );
-              }
-            });
-          },
-        ),
-        BlocListener<FavoriteCubit, FavoriteState>(
-          listener: (context, state) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!_isMounted) return;
-              
-              if (state is FavoriteAddSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Added to favorites')),
-                );
-              } else if (state is FavoriteRemoveSuccess) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Removed from favorites')),
-                );
-              }
-            });
-          },
-        ),
-      ],
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        bottomNavigationBar: _buildBottomNavigationBar(context),
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Header with greeting and profile
-                  _buildHeader(),
-                  const SizedBox(height: 20),
-
-                  // Search bar
-                  _buildSearchBar(),
-                  const SizedBox(height: 24),
-
-                  // Special Deal Banner
-                  _buildSpecialDealBanner(),
-                  const SizedBox(height: 24),
-
-                  // Popular products section
-                  _buildPopularProductsSection(context),
-                  const SizedBox(height: 24),
-
-                  // Categories section
-                  _buildCategoriesSection(context),
-                  const SizedBox(height: 24),
-
-                  // Brands section
-                  _buildBrandsSection(context),
-                  const SizedBox(height: 24),
-                ],
-              ),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      bottomNavigationBar: _buildBottomNavigationBar(context),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              spacing: 24,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                _buildSearchBar(),
+                _buildSpecialDealBanner(),
+                _buildPopularProductsSection(context),
+                _buildCategoriesSection(context),
+                _buildBrandsSection(context),
+              ],
             ),
           ),
         ),
@@ -172,8 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
           hintStyle: TextStyle(color: Colors.grey[600]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         ),
       ),
     );
@@ -239,17 +183,28 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         BlocBuilder<ProductCubit, ProductState>(
-          buildWhen: (previous, current) =>
-              current is ProductLoading ||
-              current is ProductSuccess ||
-              current is ProductFailure,
+          // buildWhen: (previous, current) => current is ProductLoading || current is ProductSuccess || current is ProductFailure,
           builder: (context, state) {
             if (state is ProductLoading) {
-              return const Center(child: Text("ProductsLoading.....!"));
+              // return const Center(child: Text("ProductsLoading.....!"));
+              return SizedBox(
+                height: 220,
+                child: ListView.separated(
+                  separatorBuilder: (context, index) => SizedBox(width: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    return SizedBox(
+                      width: 160,
+                      child: _buildProductCardShimmer(context),
+                    );
+                  },
+                ),
+              );
             } else if (state is ProductFailure) {
               return const Center(child: Text("ProductsFailure.....!"));
             } else if (state is ProductSuccess) {
-              final products = state.products.list.cast<Product>().take(3).toList();
+              final products = state.products.list; //.cast<Product>().take(3).toList();
               return SizedBox(
                 height: 220,
                 child: ListView.builder(
@@ -274,54 +229,57 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildProductCard(BuildContext context, Product product) {
-    return BlocBuilder<FavoriteCubit, FavoriteState>(
-      builder: (context, state) {
-        final isFavorite = state is FavoriteSuccess &&
-            state.favoriteResponse.list.any((item) => item.id == product.id);
-
-        return Card(
-          elevation: 2,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.only(right: 12),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () {
-              NavigationHelper.navigateTo(
-                context,
-                ProductDetailsScreen(
-                  id: product.id,
-                  name: product.title,
-                  imageUrl: product.thumbnail,
-                  price: product.price,
-                  rating: product.rating,
-                  description: product.description,
-                ),
-              );
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () {
+          NavigationHelper.navigateTo(
+            context,
+            ProductDetailsScreen(
+              id: product.id,
+              name: product.title,
+              imageUrl: product.thumbnail,
+              price: product.price,
+              rating: product.rating,
+              description: product.description,
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Product image with favorite icon
+              Stack(
                 children: [
-                  // Product image with favorite icon
-                  Stack(
-                    children: [
-                      Center(
-                        child: SizedBox(
-                          width: 80,
-                          height: 80,
-                          child: product.thumbnail.isNotEmpty
-                              ? Image.network(
-                                  product.thumbnail,
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      _buildPlaceholderImage(),
-                                )
-                              : _buildPlaceholderImage(),
-                        ),
-                      ),
-                      Positioned(
+                  Center(
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: product.thumbnail.isNotEmpty
+                          ? Image.network(
+                              product.thumbnail,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                            )
+                          : _buildPlaceholderImage(),
+                    ),
+                  ),
+                  BlocConsumer<FavoriteCubit, FavoriteState>(
+                    listener: (context, state) {
+                      if (state is FavoriteAddSuccess) {
+                        showSuccessMessage(context, 'Added successful!');
+                      } else if (state is FavoriteAddFailure) {
+                        showErrorMessage(context, 'Added Failure!');
+                      }
+                    },
+                    builder: (context, state) {
+                      final isFavorite = state is FavoriteSuccess && state.favoriteResponse.list.any((item) => item.id == product.id);
+                      return Positioned(
                         top: 0,
                         right: 0,
                         child: IconButton(
@@ -332,87 +290,168 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           onPressed: () {
                             if (!_isMounted) return;
-                            
                             if (isFavorite) {
-                              context
-                                  .read<FavoriteCubit>()
-                                  .removeFromFavorite("", product.id);
+                              context.read<FavoriteCubit>().removeFromFavorite("", product.id);
                             } else {
-                              context
-                                  .read<FavoriteCubit>()
-                                  .addToFavorite("", product.id);
+                              context.read<FavoriteCubit>().addToFavorite("", product.id);
                             }
                           },
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Product name
-                  Text(
-                    product.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-
-                  // Product brand
-                  Text(
-                    product.brand,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Price and Add button
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '\$${product.price.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                          fontSize: 16,
-                        ),
-                      ),
-                      Container(
-                        width: 30,
-                        height: 30,
-                        decoration: BoxDecoration(
-                          color: Colors.blue,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: IconButton(
-                          icon: const Icon(Icons.add,
-                              size: 16, color: Colors.white),
-                          onPressed: () {
-                            if (_isMounted) {
-                              context
-                                  .read<CartCubit>()
-                                  .addToCart("", product.id, 1);
-                            }
-                          },
-                        ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ],
               ),
-            ),
+              const SizedBox(height: 8),
+
+              // Product name
+              Text(
+                product.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 4),
+
+              // Product brand
+              Text(
+                product.brand,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 8),
+
+              // Price and Add button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                      onPressed: () {
+                        if (_isMounted) {
+                          context.read<CartCubit>().addToCart("", product.id, 1);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
+  }
+
+  Widget _buildProductCardShimmer(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(right: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image placeholder + favorite button
+            Stack(
+              children: [
+                Center(
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Title placeholder
+            Container(
+              height: 14,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 4),
+
+            // Brand placeholder
+            Container(
+              height: 12,
+              width: 80,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Price + Button row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  height: 16,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).withShimmer(isShow: true);
   }
 
   Widget _buildCategoriesSection(BuildContext context) {
@@ -441,37 +480,51 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: 12),
-        BlocBuilder<CategoryCubit, CategoryState>(
-          buildWhen: (previous, current) =>
-              current is CategoryLoading ||
-              current is CategorySuccess ||
-              current is CategoryFailure,
-          builder: (context, state) {
-            if (state is CategoryLoading) {
-              return const Center(child: Text("CategoriesLoading.....!"));
-            } else if (state is CategoryFailure) {
-              return const Center(child: Text("CategoriesFailure.....!"));
-            } else if (state is CategorySuccess) {
-              final categories = state.categories.list.cast<Category>().take(6).toList();
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
-                  childAspectRatio: 0.9,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final category = categories[index];
-                  return _buildCategoryCard(context, category);
-                },
-              );
-            } else {
-              return const SizedBox.shrink();
-            }
-          },
+        SizedBox(
+          height: 300,
+          child: BlocBuilder<CategoryCubit, CategoryState>(
+            // buildWhen: (previous, current) => current is CategoryLoading || current is CategorySuccess || current is CategoryFailure,
+            builder: (context, state) {
+              if (state is CategoryLoading) {
+                // return const Center(child: Text("CategoriesLoading.....!"));
+                return GridView.builder(
+                  // shrinkWrap: true,
+                  // physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 0.9,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                  ),
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    return _buildCategoryCardShimmer(context);
+                  },
+                );
+              } else if (state is CategoryFailure) {
+                return const Center(child: Text("CategoriesFailure.....!"));
+              } else if (state is CategorySuccess) {
+                final categories = state.categories.list; //.cast<Category>().take(6).toList();
+                return GridView.builder(
+                  // shrinkWrap: true,
+                  // physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 0.9,
+                    mainAxisSpacing: 12,
+                    crossAxisSpacing: 12,
+                  ),
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final category = categories[index];
+                    return _buildCategoryCard(context, category);
+                  },
+                );
+              } else {
+                return const SizedBox.shrink();
+              }
+            },
+          ),
         ),
       ],
     );
@@ -486,23 +539,22 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: () {
           NavigationHelper.navigateTo(
             context,
-            ProductsByCategoryScreen(
-              categoryName: category.name,
-            ),
+            ProductsByCategoryScreen(categoryName: category.name),
           );
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(25),
-              ),
-              child: Icon(Icons.category, size: 30, color: Colors.grey[600]),
-            ),
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Image.network(category.image ?? "")
+                // Icon(Icons.category, size: 30, color: Colors.grey[600]),
+                ),
             const SizedBox(height: 8),
             Text(
               category.name,
@@ -518,6 +570,44 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildCategoryCardShimmer(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Circle placeholder for category image
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(25),
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Placeholder for category name
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              height: 12,
+              width: 60,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).withShimmer(isShow: true);
   }
 
   Widget _buildBrandsSection(BuildContext context) {
@@ -547,17 +637,28 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 12),
         BlocBuilder<BrandCubit, BrandState>(
-          buildWhen: (previous, current) =>
-              current is BrandLoading ||
-              current is BrandSuccess ||
-              current is BrandFailure,
+          // buildWhen: (previous, current) => current is BrandLoading || current is BrandSuccess || current is BrandFailure,
           builder: (context, state) {
             if (state is BrandLoading) {
-              return const Center(child: Text("BrandsLoading.....!"));
+              // return const Center(child: Text("BrandsLoading.....!"));
+              // _buildBrandCardShimmer
+              return SizedBox(
+                height: 100,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: 7,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: _buildBrandCardShimmer(context),
+                    );
+                  },
+                ),
+              );
             } else if (state is BrandFailure) {
               return const Center(child: Text("BrandsFailure.....!"));
             } else if (state is BrandSuccess) {
-              final brands = state.brands.list.cast<Brand>().take(3).toList();
+              final brands = state.brands.list; //.cast<Brand>().take(3).toList();
               return SizedBox(
                 height: 100,
                 child: ListView.builder(
@@ -596,7 +697,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
         child: Container(
-          width: 80,
+          // width: 80,
           padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -623,6 +724,46 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  Widget _buildBrandCardShimmer(BuildContext context) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Placeholder for emoji
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 24,
+                width: 24,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Placeholder for brand name
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                height: 12,
+                width: 60,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ).withShimmer(isShow: true);
+  }
+
   Widget _buildPlaceholderImage() {
     return Container(
       color: Colors.grey[200],
@@ -636,8 +777,7 @@ class _HomeScreenState extends State<HomeScreen> {
         int itemCount = 0;
 
         if (state is CartSuccess) {
-          itemCount = state.cartResponse.items
-              .fold(0, (sum, item) => sum + item.quantity);
+          itemCount = state.cartResponse.items.fold(0, (sum, item) => sum + item.quantity);
         }
 
         return BottomNavigationBar(

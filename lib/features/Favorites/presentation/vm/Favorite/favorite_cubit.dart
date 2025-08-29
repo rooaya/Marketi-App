@@ -14,10 +14,10 @@ class FavoriteCubit extends Cubit<FavoriteState> {
   FavoriteCubit({required this.favoriteRepo}) : super(FavoriteInitial());
 
   // Get favorites
-  Future<void> getFavorites(String token) async {
+  Future<void> getFavorites() async {
     emit(FavoriteLoading());
     try {
-      final response = await favoriteRepo.getFavorites(token);
+      final response = await favoriteRepo.getFavorites();
       emit(FavoriteSuccess(response));
     } catch (e) {
       emit(FavoriteFailure(e.toString()));
@@ -31,7 +31,7 @@ class FavoriteCubit extends Cubit<FavoriteState> {
       final response = await favoriteRepo.addToFavorite(token, productId);
       emit(FavoriteAddSuccess(response));
       // Refresh favorites after adding
-      getFavorites(token);
+      getFavorites();
     } catch (e) {
       emit(FavoriteAddFailure(e.toString()));
     }
@@ -44,7 +44,7 @@ class FavoriteCubit extends Cubit<FavoriteState> {
       final response = await favoriteRepo.removeFromFavorite(token, productId);
       emit(FavoriteRemoveSuccess(response));
       // Refresh favorites after removal
-      getFavorites(token);
+      getFavorites();
     } catch (e) {
       emit(FavoriteRemoveFailure(e.toString()));
     }

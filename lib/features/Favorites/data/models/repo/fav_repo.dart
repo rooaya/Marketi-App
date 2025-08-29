@@ -14,12 +14,9 @@ class FavoriteRepo {
   FavoriteRepo({required this.api});
 
   // Get favorites
-  Future<FavoriteResponse> getFavorites(String token) async {
+  Future<FavoriteResponse> getFavorites() async {
     try {
-      final request = FavoriteRequest(token: token);
-      final response = await api.get(
-        EndPoints.getfav,
-      );
+      final response = await api.get(EndPoints.getfav);
       return FavoriteResponse.fromJson(response);
     } catch (e) {
       throw Exception('Failed to get favorites: $e');
