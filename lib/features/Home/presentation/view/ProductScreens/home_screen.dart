@@ -17,6 +17,7 @@ import 'package:marketiapp/features/Home/presentation/view/ProductScreens/produc
 
 import 'package:marketiapp/features/Home/presentation/vm/home/brand_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/category_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/popular_products_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/product_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/cart/presentation/view/Cart/cart_screen.dart';
@@ -117,7 +118,8 @@ class _HomeScreenState extends State<HomeScreen> {
           hintStyle: TextStyle(color: Colors.grey[600]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         ),
       ),
     );
@@ -170,14 +172,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                NavigationHelper.navigateTo(context, const PopularProductScreen());
+            BlocBuilder<PopularProductsCubit, PopularProductsState>(
+              builder: (context, state) {
+                return TextButton(
+                  onPressed: () {
+                    NavigationHelper.navigateTo(
+                        context, const PopularProductScreen());
+                  },
+                  child: const Text(
+                    'View all',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                );
               },
-              child: const Text(
-                'View all',
-                style: TextStyle(color: Colors.blue),
-              ),
             ),
           ],
         ),
@@ -204,7 +211,8 @@ class _HomeScreenState extends State<HomeScreen> {
             } else if (state is ProductFailure) {
               return const Center(child: Text("ProductsFailure.....!"));
             } else if (state is ProductSuccess) {
-              final products = state.products.list; //.cast<Product>().take(3).toList();
+              final products =
+                  state.products.list; //.cast<Product>().take(3).toList();
               return SizedBox(
                 height: 220,
                 child: ListView.builder(
@@ -264,7 +272,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? Image.network(
                               product.thumbnail,
                               fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                              errorBuilder: (context, error, stackTrace) =>
+                                  _buildPlaceholderImage(),
                             )
                           : _buildPlaceholderImage(),
                     ),
@@ -278,7 +287,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     },
                     builder: (context, state) {
-                      final isFavorite = state is FavoriteSuccess && state.favoriteResponse.list.any((item) => item.id == product.id);
+                      final isFavorite = state is FavoriteSuccess &&
+                          state.favoriteResponse.list
+                              .any((item) => item.id == product.id);
                       return Positioned(
                         top: 0,
                         right: 0,
@@ -291,9 +302,13 @@ class _HomeScreenState extends State<HomeScreen> {
                           onPressed: () {
                             if (!_isMounted) return;
                             if (isFavorite) {
-                              context.read<FavoriteCubit>().removeFromFavorite("", product.id);
+                              context
+                                  .read<FavoriteCubit>()
+                                  .removeFromFavorite("", product.id);
                             } else {
-                              context.read<FavoriteCubit>().addToFavorite("", product.id);
+                              context
+                                  .read<FavoriteCubit>()
+                                  .addToFavorite("", product.id);
                             }
                           },
                         ),
@@ -348,10 +363,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                      icon:
+                          const Icon(Icons.add, size: 16, color: Colors.white),
                       onPressed: () {
                         if (_isMounted) {
-                          context.read<CartCubit>().addToCart("", product.id, 1);
+                          context
+                              .read<CartCubit>()
+                              .addToCart("", product.id, 1);
                         }
                       },
                     ),
@@ -468,14 +486,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                NavigationHelper.navigateTo(context, const CategoryProductScreen());
+            BlocBuilder<CategoryCubit, CategoryState>(
+              builder: (context, state) {
+                return TextButton(
+                  onPressed: () {
+                    NavigationHelper.navigateTo(
+                        context, const CategoryProductScreen());
+                  },
+                  child: const Text(
+                    'View all',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                );
               },
-              child: const Text(
-                'View all',
-                style: TextStyle(color: Colors.blue),
-              ),
             ),
           ],
         ),
@@ -504,7 +527,8 @@ class _HomeScreenState extends State<HomeScreen> {
               } else if (state is CategoryFailure) {
                 return const Center(child: Text("CategoriesFailure.....!"));
               } else if (state is CategorySuccess) {
-                final categories = state.categories.list; //.cast<Category>().take(6).toList();
+                final categories =
+                    state.categories.list; //.cast<Category>().take(6).toList();
                 return GridView.builder(
                   // shrinkWrap: true,
                   // physics: const NeverScrollableScrollPhysics(),
@@ -624,14 +648,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            TextButton(
-              onPressed: () {
-                NavigationHelper.navigateTo(context, const BrandsScreen());
+            BlocBuilder<BrandCubit, BrandState>(
+              builder: (context, state) {
+                return TextButton(
+                  onPressed: () {
+                    NavigationHelper.navigateTo(context, const BrandsScreen());
+                  },
+                  child: const Text(
+                    'View all',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                );
               },
-              child: const Text(
-                'View all',
-                style: TextStyle(color: Colors.blue),
-              ),
             ),
           ],
         ),
@@ -658,7 +686,8 @@ class _HomeScreenState extends State<HomeScreen> {
             } else if (state is BrandFailure) {
               return const Center(child: Text("BrandsFailure.....!"));
             } else if (state is BrandSuccess) {
-              final brands = state.brands.list; //.cast<Brand>().take(3).toList();
+              final brands =
+                  state.brands.list; //.cast<Brand>().take(3).toList();
               return SizedBox(
                 height: 100,
                 child: ListView.builder(
@@ -777,7 +806,8 @@ class _HomeScreenState extends State<HomeScreen> {
         int itemCount = 0;
 
         if (state is CartSuccess) {
-          itemCount = state.cartResponse.items.fold(0, (sum, item) => sum + item.quantity);
+          itemCount = state.cartResponse.items
+              .fold(0, (sum, item) => sum + item.quantity);
         }
 
         return BottomNavigationBar(
