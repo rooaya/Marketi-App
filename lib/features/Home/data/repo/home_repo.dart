@@ -63,10 +63,10 @@ class HomeRepo {
         'skip': skip,
         'limit': limit,
       };
-      
+
       if (sortBy != null) queryParams['sortBy'] = sortBy;
       if (order != null) queryParams['order'] = order;
-      
+
       final response = await api.get(
         EndPoints.products,
         queryParameters: queryParams,
@@ -87,9 +87,9 @@ class HomeRepo {
   }) async {
     try {
       final response = await api.get(
-        EndPoints.products,
+        EndPoints.productbycategory(category),
         queryParameters: {
-          'category': category,
+          //'category': category,
           'skip': skip,
           'limit': limit,
         },

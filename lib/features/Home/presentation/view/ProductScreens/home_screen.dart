@@ -1,13 +1,17 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/api/dio_consumer.dart';
 import 'package:marketiapp/core/helpers/app_function.dart';
 import 'package:marketiapp/core/helpers/navigation_helper.dart';
 import 'package:marketiapp/core/resources/app_extantion.dart';
+import 'package:marketiapp/core/widgets/fav_icon.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
 import 'package:marketiapp/features/Home/data/models/Products/product_model.dart';
+import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popular_product_screen.dart';
@@ -176,8 +180,15 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context, state) {
                 return TextButton(
                   onPressed: () {
-                    NavigationHelper.navigateTo(
-                        context, const PopularProductScreen());
+                    Navigator.pushNamed(context, '/popular-products');
+                    /* NavigationHelper.navigateTo(
+                      context,
+                      BlocProvider(
+                          create: (context) => PopularProductsCubit(
+                              homeRepo: HomeRepo(api: DioConsumer(dio: Dio())))
+                            ..getPopularProducts(),
+                          child: const PopularProductScreen()),
+                    );*/
                   },
                   child: const Text(
                     'View all',
@@ -278,43 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           : _buildPlaceholderImage(),
                     ),
                   ),
-                  BlocConsumer<FavoriteCubit, FavoriteState>(
-                    listener: (context, state) {
-                      if (state is FavoriteAddSuccess) {
-                        showSuccessMessage(context, 'Added successful!');
-                      } else if (state is FavoriteAddFailure) {
-                        showErrorMessage(context, 'Added Failure!');
-                      }
-                    },
-                    builder: (context, state) {
-                      final isFavorite = state is FavoriteSuccess &&
-                          state.favoriteResponse.list
-                              .any((item) => item.id == product.id);
-                      return Positioned(
-                        top: 0,
-                        right: 0,
-                        child: IconButton(
-                          icon: Icon(
-                            isFavorite ? Icons.favorite : Icons.favorite_border,
-                            color: isFavorite ? Colors.red : Colors.grey,
-                            size: 20,
-                          ),
-                          onPressed: () {
-                            if (!_isMounted) return;
-                            if (isFavorite) {
-                              context
-                                  .read<FavoriteCubit>()
-                                  .removeFromFavorite("", product.id);
-                            } else {
-                              context
-                                  .read<FavoriteCubit>()
-                                  .addToFavorite("", product.id);
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                  HeartIcon(productId: product.id),
                 ],
               ),
               const SizedBox(height: 8),
@@ -489,10 +464,7 @@ class _HomeScreenState extends State<HomeScreen> {
             BlocBuilder<CategoryCubit, CategoryState>(
               builder: (context, state) {
                 return TextButton(
-                  onPressed: () {
-                    NavigationHelper.navigateTo(
-                        context, const CategoryProductScreen());
-                  },
+                  onPressed: () {},
                   child: const Text(
                     'View all',
                     style: TextStyle(color: Colors.blue),
@@ -561,10 +533,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          NavigationHelper.navigateTo(
-            context,
-            ProductsByCategoryScreen(categoryName: category.name),
-          );
+          Navigator.pushNamed(context, '/categories', arguments: category.name);
         },
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

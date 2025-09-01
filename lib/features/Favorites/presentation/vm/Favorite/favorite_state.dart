@@ -18,7 +18,10 @@ final class FavoriteFailure extends FavoriteState {
   FavoriteFailure(this.error);
 }
 
-final class FavoriteAddLoading extends FavoriteState {}
+final class FavoriteAddLoading extends FavoriteState {
+  final String productId;
+  FavoriteAddLoading(this.productId);
+}
 
 final class FavoriteAddSuccess extends FavoriteState {
   final AddFavoriteResponse addFavoriteResponse;
@@ -30,7 +33,10 @@ final class FavoriteAddFailure extends FavoriteState {
   FavoriteAddFailure(this.error);
 }
 
-final class FavoriteRemoveLoading extends FavoriteState {}
+final class FavoriteRemoveLoading extends FavoriteState {
+  final String ProductId;
+  FavoriteRemoveLoading(this.ProductId);
+}
 
 final class FavoriteRemoveSuccess extends FavoriteState {
   final DeleteFavoriteResponse deleteFavoriteResponse;

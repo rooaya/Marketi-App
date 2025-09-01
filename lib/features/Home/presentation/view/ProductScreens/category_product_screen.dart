@@ -1,9 +1,11 @@
 // lib/features/Home/presentation/view/ProductScreens/category_product_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/widgets/fav_icon.dart';
 import 'package:marketiapp/features/Home/data/models/Categories/category_model.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/product_by_category.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/category_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/products_by_category_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
@@ -105,24 +107,26 @@ class CategoryProductScreen extends StatelessWidget {
 
               // Categories grid
               Expanded(
-                child: BlocBuilder<CategoryCubit, CategoryState>(
+                child: BlocBuilder<ProductsByCategoryCubit,
+                    ProductsByCategoryState>(
                   builder: (context, state) {
                     if (state is CategoryLoading) {
                       return const Center(child: CircularProgressIndicator());
-                    } else if (state is CategoryFailure) {
+                    } else if (state is ProductsByCategoryFailure) {
                       return Center(
                         child: Text(
                           'Error: ${state.failure.errorModel.message}',
                           textAlign: TextAlign.center,
                         ),
                       );
-                    } else if (state is CategorySuccess) {
+                    } else if (state is ProductsByCategorySuccess) {
                       return _buildCategoriesGrid(
                         context,
-                        state.categories.list.cast<Category>(),
+                        state.products.list.cast<Category>(),
                       );
                     } else {
-                      return const Center(child: Text('No categories available'));
+                      return const Center(
+                          child: Text('No categories available'));
                     }
                   },
                 ),
@@ -153,12 +157,13 @@ class CategoryProductScreen extends StatelessWidget {
   Widget _buildCategoryCard(BuildContext context, Category category) {
     return BlocBuilder<FavoriteCubit, FavoriteState>(
       builder: (context, state) {
-        final isFavorite = state is FavoriteSuccess && 
+        final isFavorite = state is FavoriteSuccess &&
             state.favoriteResponse.list.any((item) => item.id == category.name);
-        
+
         return Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -193,7 +198,7 @@ class CategoryProductScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      
+
                       // Category name
                       Text(
                         category.name,
@@ -206,7 +211,7 @@ class CategoryProductScreen extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
-                      
+
                       // View products button
                       Container(
                         width: double.infinity,
@@ -229,26 +234,8 @@ class CategoryProductScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                
+
                 // Favorite icon in top right corner
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      if (isFavorite) {
-                        context.read<FavoriteCubit>().removeFromFavorite("", category.name);
-                      } else {
-                        context.read<FavoriteCubit>().addToFavorite("", category.name);
-                      }
-                    },
-                  ),
-                ),
               ],
             ),
           ),

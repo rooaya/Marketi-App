@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/features/Home/data/models/Products/get_product_by_category_request.dart';
 import 'package:marketiapp/features/Home/data/models/Products/product_response.dart';
 import 'package:marketiapp/core/errors/failure.dart';
 import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
@@ -10,12 +11,14 @@ class ProductsByCategoryCubit extends Cubit<ProductsByCategoryState> {
   final HomeRepo homeRepo;
   final String categoryName;
 
-  ProductsByCategoryCubit({required this.homeRepo, required this.categoryName}) : super(ProductsByCategoryInitial());
+  ProductsByCategoryCubit({required this.homeRepo, required this.categoryName})
+      : super(ProductsByCategoryInitial());
 
-  Future<void> getProducts({int skip = 0, int limit = 10}) async {
+  Future<void> getProductsByCategory({int skip = 0, int limit = 10}) async {
     if (skip == 0) emit(ProductsByCategoryLoading());
 
-    final result = await homeRepo.getProductsByCategory(categoryName, skip: skip, limit: limit);
+    final result = await homeRepo.getProductsByCategory(categoryName,
+        skip: skip, limit: limit);
     result.fold(
       (failure) => emit(ProductsByCategoryFailure(failure)),
       (products) {

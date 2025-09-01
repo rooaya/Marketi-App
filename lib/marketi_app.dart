@@ -11,6 +11,7 @@ import 'package:marketiapp/features/Favorites/data/models/repo/fav_repo.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/brands_screen.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/popular_products_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/category_product_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/home_screen.dart';
 import 'package:marketiapp/features/Home/presentation/view/ProductScreens/popular_product_screen.dart';
@@ -20,6 +21,8 @@ import 'package:marketiapp/features/Home/presentation/view/ProductScreens/produc
 import 'package:marketiapp/features/Home/presentation/vm/home/brand_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/category_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/product_cubit.dart';
+// import 'package:marketiapp/features/Home/presentation/vm/home/product_cubit.dart';
+import 'package:marketiapp/features/Home/presentation/vm/home/products_by_category_cubit.dart';
 import 'package:marketiapp/features/OnBoarding/onboarding1_screen.dart';
 import 'package:marketiapp/features/OnBoarding/onboarding2_screen.dart';
 import 'package:marketiapp/features/OnBoarding/onboarding3_screen.dart';
@@ -56,16 +59,21 @@ class MarketiApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: {
         '/onboarding1': (context) => OnboardingPage1(
-              onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding2'),
-              onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              onNextPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/onboarding2'),
+              onSkipPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/login'),
             ),
         '/onboarding2': (context) => OnboardingPage2(
-              onNextPressed: () => Navigator.pushReplacementNamed(context, '/onboarding3'),
+              onNextPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/onboarding3'),
               onBackPressed: () => Navigator.pop(context),
-              onSkipPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              onSkipPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/login'),
             ),
         '/onboarding3': (context) => OnboardingPage3(
-              onGetStartedPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              onGetStartedPressed: () =>
+                  Navigator.pushReplacementNamed(context, '/login'),
               onBackPressed: () => Navigator.pop(context),
             ),
         '/sign-up': (context) => BlocProvider(
@@ -73,23 +81,28 @@ class MarketiApp extends StatelessWidget {
               child: const SignUpScreen(),
             ),
         '/login': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return BlocProvider(
             create: (context) => LoginCubit(authRepo: authRepo),
             child: LoginScreen(
-              onLoginSuccess: () => Navigator.pushReplacementNamed(context, '/home_screen'),
+              onLoginSuccess: () =>
+                  Navigator.pushReplacementNamed(context, '/home_screen'),
               initialEmail: args?['email']?.toString(),
             ),
           );
         },
         '/forgot-password-phone': (context) => BlocProvider(
-              create: (context) => ForgotPassCubit(authRepo: authRepo), //TODO: No_send_code_btn_work_with api
+              create: (context) => ForgotPassCubit(
+                  authRepo: authRepo), //TODO: No_send_code_btn_work_with api
               child: const ForgotPasswordPhoneScreen(),
             ),
         '/create-password': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return BlocProvider(
-            create: (context) => CreatepassCubit(authRepo: authRepo, email: args?['email'] as String? ?? ''),
+            create: (context) => CreatepassCubit(
+                authRepo: authRepo, email: args?['email'] as String? ?? ''),
             child: CreateNewPasswordScreen(
               email: args?['email'] as String? ?? '',
             ),
@@ -98,13 +111,26 @@ class MarketiApp extends StatelessWidget {
         '/congrates-page': (context) => const CongratulationsScreen(),
         '/home_screen': (context) => MultiBlocProvider(
               providers: [
-                BlocProvider<ProductCubit>(create: (context) => ProductCubit(homeRepo: homeRepo)..getProducts()),
-                BlocProvider<BrandCubit>(create: (context) => BrandCubit(homeRepo: homeRepo)..getBrands()),
-                BlocProvider<CategoryCubit>(create: (context) => CategoryCubit(homeRepo: homeRepo)..getCategories()),
-                BlocProvider<FavoriteCubit>(create: (context) => FavoriteCubit(favoriteRepo: favoriteRepo)),
-                BlocProvider<CartCubit>(create: (context) => CartCubit(cartRepo: cartRepo)),
+                BlocProvider<ProductCubit>(
+                    create: (context) =>
+                        ProductCubit(homeRepo: homeRepo)..getProducts()),
+                BlocProvider<BrandCubit>(
+                    create: (context) =>
+                        BrandCubit(homeRepo: homeRepo)..getBrands()),
+                BlocProvider<CategoryCubit>(
+                    create: (context) =>
+                        CategoryCubit(homeRepo: homeRepo)..getCategories()),
+                BlocProvider<FavoriteCubit>(
+                    create: (context) =>
+                        FavoriteCubit(favoriteRepo: favoriteRepo)),
+                BlocProvider<CartCubit>(
+                    create: (context) => CartCubit(cartRepo: cartRepo)),
+                BlocProvider<PopularProductsCubit>(
+                    create: (context) =>
+                        PopularProductsCubit(homeRepo: homeRepo)),
+
                 /*
-                      PopularProductsCubit
+                      
                       ProductsByBrandCubit
                       ProductsByCategoryCubit
                  */
@@ -112,27 +138,59 @@ class MarketiApp extends StatelessWidget {
               child: const HomeScreen(),
             ),
         '/favorites': (context) => BlocProvider(
-              create: (context) => FavoriteCubit(favoriteRepo: favoriteRepo)..getFavorites(),
+              create: (context) =>
+                  FavoriteCubit(favoriteRepo: favoriteRepo)..getFavorites(),
               child: const FavoritesScreen(),
             ),
         '/profile': (context) => const ProfileScreen(),
         '/brands': (context) => const BrandsScreen(),
-        '/categories': (context) => const CategoryProductScreen(),
-        '/popular-products': (context) => const PopularProductScreen(),
+        '/categories': (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) {
+                    final args =
+                        ModalRoute.of(context)?.settings.arguments as String;
+
+                    return ProductsByCategoryCubit(
+                        categoryName: args, homeRepo: homeRepo)
+                      ..getProductsByCategory();
+                  },
+                ),
+                //BlocProvider<CategoryCubit>(create: (context) => CategoryCubit(homeRepo: homeRepo)),
+              ],
+              child: const CategoryProductScreen(),
+            ),
+        '/popular-products': (context) => MultiBlocProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) => PopularProductsCubit(homeRepo: homeRepo)
+                    ..getPopularProducts(),
+                ),
+                BlocProvider(
+                    create: (context) => CartCubit(cartRepo: cartRepo)),
+                BlocProvider(
+                    create: (context) =>
+                        FavoriteCubit(favoriteRepo: favoriteRepo)),
+              ],
+              child: const PopularProductScreen(),
+            ),
         '/products-by-category': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return ProductsByCategoryScreen(
             categoryName: args?['categoryName'] as String? ?? '',
           );
         },
         '/products-by-brand': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return ProductsByBrandScreen(
             brandName: args?['brandName'] as String? ?? '',
           );
         },
         '/product-details': (context) {
-          final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+          final args = ModalRoute.of(context)?.settings.arguments
+              as Map<String, dynamic>?;
           return ProductDetailsScreen(
             id: args?['id'] as String? ?? '',
             name: args?['name'] as String? ?? '',

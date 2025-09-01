@@ -24,12 +24,11 @@ class FavoriteRepo {
   }
 
   // Add to favorites
-  Future<AddFavoriteResponse> addToFavorite(String token, String productId) async {
+  Future<AddFavoriteResponse> addToFavorite(String productId) async {
     try {
-      final request = AddFavoriteRequest(token: token, productId: productId);
       final response = await api.post(
         EndPoints.addfav,
-        data: request.toJson(),
+        data: {"productId": productId},
       );
       return AddFavoriteResponse.fromJson(response);
     } catch (e) {
@@ -38,12 +37,11 @@ class FavoriteRepo {
   }
 
   // Remove from favorites
-  Future<DeleteFavoriteResponse> removeFromFavorite(String token, String productId) async {
+  Future<DeleteFavoriteResponse> removeFromFavorite(String productId) async {
     try {
-      final request = DeleteFavoriteRequest(token: token, productId: productId);
       final response = await api.delete(
         EndPoints.delfav,
-        data: request.toJson(),
+        data: {"productId": productId},
       );
       return DeleteFavoriteResponse.fromJson(response);
     } catch (e) {

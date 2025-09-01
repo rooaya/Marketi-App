@@ -11,7 +11,8 @@ class EndPoints {
   static String resetPassword = "auth/resetPassword";
   //! Home  ------------------------------------------------------
   static String products = "home/products";
-  static String productbycategory = "/home/products/category/smartphones?skip=0&limit=5";
+  static String productbycategory([String category = 'smartPhone']) =>
+      "/home/products/category/$category?skip=0&limit=5";
   static String productbybrand = "/home/products/brand/Essence?skip=0&limit=5";
   static String brands = "home/brands";
   static String brandname = "home/brands/names";

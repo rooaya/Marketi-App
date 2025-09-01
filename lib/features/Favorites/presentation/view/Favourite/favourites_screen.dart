@@ -1,6 +1,7 @@
 // lib/features/Favorites/presentation/view/Favourite/favourites_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/widgets/fav_icon.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
@@ -111,10 +112,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               // Main content
               BlocBuilder<FavoriteCubit, FavoriteState>(
                 builder: (context, state) {
-                  final isLoading = state is FavoriteLoading || state is FavoriteAddLoading || state is FavoriteRemoveLoading;
+                  final isLoading = state is FavoriteLoading ||
+                      state is FavoriteAddLoading ||
+                      state is FavoriteRemoveLoading;
 
                   if (isLoading) {
-                    return const Expanded(child: Center(child: CircularProgressIndicator()));
+                    return const Expanded(
+                        child: Center(child: CircularProgressIndicator()));
                   } else if (state is FavoriteSuccess) {
                     final favorites = state.favoriteResponse.list;
 
@@ -128,7 +132,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         children: [
                           const Text(
                             'All Products',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 16),
                           Expanded(
@@ -143,21 +148,15 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                                       width: 60,
                                       height: 60,
                                       color: Colors.grey[200],
-                                      child: const Icon(Icons.image, color: Colors.grey),
+                                      child: const Icon(Icons.image,
+                                          color: Colors.grey),
                                     ),
                                     title: Text(
                                       item.name,
-                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold),
                                     ),
-                                    trailing: IconButton(
-                                      icon: const Icon(
-                                        Icons.favorite,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        context.read<FavoriteCubit>().removeFromFavorite("", item.id);
-                                      },
-                                    ),
+                                    trailing: HeartIcon(productId: item.id),
                                     onTap: () {
                                       // Navigate to product details if needed
                                     },
@@ -175,11 +174,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                            const Icon(Icons.error_outline,
+                                size: 64, color: Colors.red),
                             const SizedBox(height: 16),
                             Text(
                               'Error: ${state.error}',
-                              style: const TextStyle(fontSize: 16, color: Colors.red),
+                              style: const TextStyle(
+                                  fontSize: 16, color: Colors.red),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 20),
@@ -194,7 +195,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
                       ),
                     );
                   } else {
-                    return const Expanded(child: Center(child: CircularProgressIndicator()));
+                    return const Expanded(
+                        child: Center(child: CircularProgressIndicator()));
                   }
                 },
               ),
@@ -242,7 +244,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         int itemCount = 0;
 
         if (state is CartSuccess) {
-          itemCount = state.cartResponse.items.fold(0, (sum, item) => sum + item.quantity);
+          itemCount = state.cartResponse.items
+              .fold(0, (sum, item) => sum + item.quantity);
         }
 
         return BottomNavigationBar(
@@ -251,7 +254,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
           selectedItemColor: Colors.blue,
           unselectedItemColor: Colors.grey,
           items: [
-            const BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.home), label: 'Home'),
             BottomNavigationBarItem(
               icon: Stack(
                 children: [
@@ -288,7 +292,8 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
               icon: Icon(Icons.favorite),
               label: 'Favorites',
             ),
-            const BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+            const BottomNavigationBarItem(
+                icon: Icon(Icons.menu), label: 'Menu'),
           ],
           onTap: (index) {
             switch (index) {

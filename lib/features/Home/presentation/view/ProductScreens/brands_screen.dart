@@ -1,4 +1,3 @@
-// lib/features/Home/presentation/view/ProductScreens/brands_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:marketiapp/features/Home/data/models/Brand/brand_model.dart';
@@ -7,6 +6,27 @@ import 'package:marketiapp/features/Home/presentation/vm/home/brand_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
 import 'package:marketiapp/features/Favorites/presentation/vm/Favorite/favorite_cubit.dart';
 
+import 'package:marketiapp/features/Home/data/repo/home_repo.dart';
+import 'package:marketiapp/core/api/api_consumer.dart';
+import 'package:marketiapp/core/api/dio_consumer.dart';
+import 'package:dio/dio.dart';
+
+class BrandsScreenWrapper extends StatelessWidget {
+  const BrandsScreenWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final dio = Dio();
+    final apiConsumer = DioConsumer(dio: dio);
+    final homeRepo = HomeRepo(api: apiConsumer);
+
+    return BlocProvider<BrandCubit>(
+      create: (_) => BrandCubit(homeRepo: homeRepo)..getBrands(),
+      child: const BrandsScreen(),
+    );
+  }
+}
+
 class BrandsScreen extends StatelessWidget {
   const BrandsScreen({super.key});
 
@@ -14,122 +34,128 @@ class BrandsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header with back button and profile icon
-              Row(
+      body: BlocBuilder<BrandCubit, BrandState>(
+        builder: (context, state) {
+          return SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                  const Expanded(
-                    child: Text(
-                      'Brands',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                  // Header with back button and profile icon
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                      textAlign: TextAlign.center,
+                      const Expanded(
+                        child: Text(
+                          'Brands',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.person_2_rounded, size: 30),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfileScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Search bar
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: "What are you looking for?",
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.0,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 1.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: const BorderSide(
+                          color: Colors.blue,
+                          width: 2.0,
+                        ),
+                      ),
+                      filled: true,
+                      fillColor: const Color.fromARGB(255, 255, 253, 253),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 20,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      // Implement search functionality if needed
+                    },
+                  ),
+                  const SizedBox(height: 20),
+
+                  // All Brands title
+                  const Text(
+                    'All Brands',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.person_2_rounded, size: 30),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                    },
+                  const SizedBox(height: 16),
+
+                  // Brands grid
+                  Expanded(
+                    child: BlocBuilder<BrandCubit, BrandState>(
+                      builder: (context, state) {
+                        if (state is BrandLoading) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (state is BrandFailure) {
+                          return Center(
+                            child: Text(
+                              'Error: ${state.failure.errorModel.message}',
+                              textAlign: TextAlign.center,
+                            ),
+                          );
+                        } else if (state is BrandSuccess) {
+                          return _buildBrandsGrid(
+                            context,
+                            state.brands.list.cast<Brand>(),
+                          );
+                        } else {
+                          return const Center(
+                              child: Text('No brands available'));
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Search bar
-              TextField(
-                decoration: InputDecoration(
-                  hintText: "What are you looking for?",
-                  prefixIcon: const Icon(Icons.search),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 1.0,
-                    ),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Colors.blue,
-                      width: 2.0,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: const Color.fromARGB(255, 255, 253, 253),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 12,
-                    horizontal: 20,
-                  ),
-                ),
-                onChanged: (value) {
-                  // Implement search functionality if needed
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // All Brands title
-              const Text(
-                'All Brands',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Brands grid
-              Expanded(
-                child: BlocBuilder<BrandCubit, BrandState>(
-                  builder: (context, state) {
-                    if (state is BrandLoading) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (state is BrandFailure) {
-                      return Center(
-                        child: Text(
-                          'Error: ${state.failure.errorModel.message}',
-                          textAlign: TextAlign.center,
-                        ),
-                      );
-                    } else if (state is BrandSuccess) {
-                      return _buildBrandsGrid(
-                        context,
-                        state.brands.list.cast<Brand>(),
-                      );
-                    } else {
-                      return const Center(child: Text('No brands available'));
-                    }
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -153,12 +179,13 @@ class BrandsScreen extends StatelessWidget {
   Widget _buildBrandCard(BuildContext context, Brand brand) {
     return BlocBuilder<FavoriteCubit, FavoriteState>(
       builder: (context, state) {
-        final isFavorite = state is FavoriteSuccess && 
+        final isFavorite = state is FavoriteSuccess &&
             state.favoriteResponse.list.any((item) => item.id == brand.name);
-        
+
         return Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -218,26 +245,6 @@ class BrandsScreen extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
-                ),
-
-                // Favorite icon in top right corner
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      if (isFavorite) {
-                        context.read<FavoriteCubit>().removeFromFavorite("", brand.name);
-                      } else {
-                        context.read<FavoriteCubit>().addToFavorite("", brand.name);
-                      }
-                    },
                   ),
                 ),
               ],

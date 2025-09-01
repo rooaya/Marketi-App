@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:marketiapp/core/widgets/fav_icon.dart';
 import 'package:marketiapp/features/Cart/presentation/vm/Cart/cart_cubit.dart';
 import 'package:marketiapp/features/Home/presentation/vm/home/products_by_category_cubit.dart';
 import 'package:marketiapp/features/Profile/presentation/view/UserProfile/Profile_screen.dart';
@@ -14,7 +15,8 @@ class ProductsByCategoryScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<ProductsByCategoryScreen> createState() => _ProductsByCategoryScreenState();
+  State<ProductsByCategoryScreen> createState() =>
+      _ProductsByCategoryScreenState();
 }
 
 class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
@@ -37,7 +39,9 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
   }
 
   void _loadInitialProducts() {
-    context.read<ProductsByCategoryCubit>().getProducts(skip: 0, limit: _limit);
+    context
+        .read<ProductsByCategoryCubit>()
+        .getProductsByCategory(skip: 0, limit: _limit);
   }
 
   void _onScroll() {
@@ -56,7 +60,7 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
         _isLoadingMore = true;
       });
       _currentPage++;
-      context.read<ProductsByCategoryCubit>().getProducts(
+      context.read<ProductsByCategoryCubit>().getProductsByCategory(
             skip: _currentPage * _limit,
             limit: _limit,
           );
@@ -147,7 +151,8 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
 
               // Products grid
               Expanded(
-                child: BlocConsumer<ProductsByCategoryCubit, ProductsByCategoryState>(
+                child: BlocConsumer<ProductsByCategoryCubit,
+                    ProductsByCategoryState>(
                   listener: (context, state) {
                     if (state is ProductsByCategorySuccess) {
                       setState(() {
@@ -160,12 +165,14 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                     }
                   },
                   builder: (context, state) {
-                    if (state is ProductsByCategoryLoading && _currentPage == 0) {
+                    if (state is ProductsByCategoryLoading &&
+                        _currentPage == 0) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (state is ProductsByCategoryFailure) {
                       return Center(
                         child: Text(
-                          state.failure.errorModel.message ?? 'Failed to load products',
+                          state.failure.errorModel.message ??
+                              'Failed to load products',
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -182,7 +189,8 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                       }
                       return GridView.builder(
                         controller: _scrollController,
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
                           childAspectRatio: 0.75,
                           mainAxisSpacing: 16,
@@ -191,7 +199,8 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                         itemCount: products.length + (_isLoadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (index >= products.length) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                                child: CircularProgressIndicator());
                           }
                           final product = products[index];
                           return _buildProductCard(context, product);
@@ -231,12 +240,13 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
           id = 'product_${product.hashCode}';
         }
 
-        final isFavorite = favoriteState is FavoriteSuccess && 
+        final isFavorite = favoriteState is FavoriteSuccess &&
             favoriteState.favoriteResponse.list.any((item) => item.id == id);
 
         return Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
@@ -303,7 +313,8 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: IconButton(
-                              icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                              icon: const Icon(Icons.add,
+                                  size: 16, color: Colors.white),
                               onPressed: () {
                                 context.read<CartCubit>().addToCart("", id, 1);
                                 ScaffoldMessenger.of(context).showSnackBar(
@@ -320,24 +331,7 @@ class _ProductsByCategoryScreenState extends State<ProductsByCategoryScreen> {
                     ],
                   ),
                 ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    icon: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.grey,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      if (isFavorite) {
-                        context.read<FavoriteCubit>().removeFromFavorite("", id);
-                      } else {
-                        context.read<FavoriteCubit>().addToFavorite("", id);
-                      }
-                    },
-                  ),
-                ),
+                HeartIcon(productId: id),
               ],
             ),
           ),
